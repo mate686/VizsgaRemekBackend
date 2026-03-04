@@ -29,5 +29,8 @@ namespace VizsgaRemekBackend.Controllers
             })
             .ToArray();
         }
+
     }
+
+    //[Route("teszt")]
 }

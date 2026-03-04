@@ -1,4 +1,3 @@
-
 namespace VizsgaRemekBackend
 {
     public class Program
@@ -9,9 +8,13 @@ namespace VizsgaRemekBackend
 
             // Add services to the container.
 
+            builder.Services.AddDbContext<Models.AppDbContext>();
+
             builder.Services.AddControllers();
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
+
+
 
             var app = builder.Build();
 

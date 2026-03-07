@@ -3,6 +3,7 @@
     public class Restaurant
     {
         public int Id { get; set; }
+        public Guid publicId { get; set; } = Guid.NewGuid();
         public string Name { get; set; } = null!;
         public string Address { get; set; } = null!;
         public string Phone { get; set; } = null!;

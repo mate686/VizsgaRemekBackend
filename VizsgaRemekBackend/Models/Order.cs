@@ -3,6 +3,7 @@
     public class Order
     {
         public int Id { get; set; }
+        public Guid publicId { get; set; } = Guid.NewGuid();
         public int UserId { get; set; }
         public int RestaurantId { get; set; }
         public DateTime OrderDate { get; set; } = DateTime.UtcNow;

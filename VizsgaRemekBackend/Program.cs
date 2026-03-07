@@ -10,6 +10,8 @@ namespace VizsgaRemekBackend
 
             builder.Services.AddDbContext<Models.AppDbContext>();
 
+            builder.Services.AddScoped<Services.IFoodService, Services.FoodService>();
+
             builder.Services.AddControllers();
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();

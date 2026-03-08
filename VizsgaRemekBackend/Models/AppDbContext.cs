@@ -1,11 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+using VizsgaRemekBackend.Data;
 
 namespace VizsgaRemekBackend.Models
 {
-    public class AppDbContext : DbContext
+    public class AppDbContext : IdentityDbContext<User>
     {
 
-        public DbSet<User> Users { get; set; }
         public DbSet<Restaurant> Restaurants { get; set; }
         public DbSet<Food> Foods { get; set; }
         public DbSet<Order> Orders { get; set; }
@@ -15,11 +16,20 @@ namespace VizsgaRemekBackend.Models
         public DbSet<FoodImage> FoodImages  { get; set; }
         public DbSet<Payment> Payments { get; set; }
 
-        string conn = "Server=localhost;Database=AppDB;Uid=root;Pwd=;";
+
+        private readonly string _conn;
+
+        public AppDbContext(IConfiguration conn)
+        {
+            _conn = conn.GetConnectionString("DefaultConnection");            
+        }
+
+        public AppDbContext(DbContextOptions<AppDbContext> options)
+       : base(options) { }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseMySql(conn, ServerVersion.AutoDetect(conn));
+            optionsBuilder.UseMySql(_conn, ServerVersion.AutoDetect(_conn));
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

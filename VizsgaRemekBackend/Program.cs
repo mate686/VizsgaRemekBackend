@@ -1,3 +1,8 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using VizsgaRemekBackend.Data;
+using VizsgaRemekBackend.Models;
+
 namespace VizsgaRemekBackend
 {
     public class Program
@@ -16,7 +21,53 @@ namespace VizsgaRemekBackend
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
 
+            //elso proba az identity létrehozására
+            //Adatbázis lehetség megadása, Identity-hez szükséges szolgáltatások hozzáadása, token provider hozzáadása
+            /*builder.Services.AddIdentity<User, IdentityRole>()
+            .AddEntityFrameworkStores<AppDbContext>()
+            .AddDefaultTokenProviders();*/
 
+
+            //Másik proba  az identity létrehozására
+            /*builder.Services.AddDbContext<AppDbContext>(options =>
+
+            options.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"),ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))));
+
+
+            builder.Services.AddIdentityCore<User>(options =>
+            {
+                options.SignIn.RequireConfirmedAccount = false;
+            })
+            .AddEntityFrameworkStores<AppDbContext>();*/
+
+            //eddigi végleges megoldás az identity létrehozására
+            builder.Services.AddIdentityCore<User>()
+            .AddRoles<IdentityRole>()
+            .AddEntityFrameworkStores<AppDbContext>();
+
+            //Identity konfiguráció még nincs beállítva
+            /*builder.Services.Configure<IdentityOptions>(options =>
+            {
+                // Password settings.
+                options.Password.RequireDigit = true;
+                options.Password.RequireLowercase = true;
+                options.Password.RequireNonAlphanumeric = true;
+                options.Password.RequireUppercase = true;
+                options.Password.RequiredLength = 6;
+                options.Password.RequiredUniqueChars = 1;
+
+                // Lockout settings.
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+                options.Lockout.MaxFailedAccessAttempts = 5;
+                options.Lockout.AllowedForNewUsers = true;
+
+                // User settings.
+                options.User.AllowedUserNameCharacters =
+                "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+                options.User.RequireUniqueEmail = false;
+
+                options.SignIn.RequireConfirmedEmail = false;
+            });*/
 
             var app = builder.Build();
 

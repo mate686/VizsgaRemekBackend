@@ -2,9 +2,8 @@
 
 namespace VizsgaRemekBackend.Dtos
 {
-    public class AllFoodDto
+    public class FoodBypubId
     {
-
         public Guid publicId { get; set; }
         public string Name { get; set; } = null!;
         public string Description { get; set; } = null!;
@@ -12,6 +11,5 @@ namespace VizsgaRemekBackend.Dtos
         public string Category { get; set; } = null!;
 
         public ICollection<FoodImage> Images { get; set; } = new List<FoodImage>();
-
     }
 }

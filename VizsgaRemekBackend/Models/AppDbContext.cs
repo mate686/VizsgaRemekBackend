@@ -26,7 +26,7 @@ namespace VizsgaRemekBackend.Models
         {
             base.OnModelCreating(modelBuilder);
 
-            // Kompozit kulcs a Favorite táblánál
+            // Kulcs a Favorite táblában hiba elkerülése miatt UserId és FoodId a összetett kulcs 
             modelBuilder.Entity<Favorite>()
                 .HasKey(f => new { f.UserId, f.FoodId });
 

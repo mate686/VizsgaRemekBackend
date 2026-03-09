@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using VizsgaRemekBackend.Data;
+using VizsgaRemekBackend.Models;
 
-namespace VizsgaRemekBackend.Models
+namespace VizsgaRemekBackend.Data
 {
     public class AppDbContext : IdentityDbContext<User>
     {

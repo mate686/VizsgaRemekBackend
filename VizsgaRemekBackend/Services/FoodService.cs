@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using VizsgaRemekBackend.Data;
 using VizsgaRemekBackend.Dtos;
 using VizsgaRemekBackend.Models;
 

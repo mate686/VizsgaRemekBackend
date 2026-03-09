@@ -85,9 +85,11 @@ namespace VizsgaRemekBackend.Services
             return allFood;
         }
 
-        public Task<FoodBypubId?> GetFoodByIdAsnyc(Guid publicid)
+        public async Task<FoodBypubId?> GetFoodByIdAsnyc(Guid publicid)
         {
-            Task<FoodBypubId?> dto = _conn.Foods.Where(f => f.publicId == publicid).Select(f => new FoodBypubId
+            return await _conn.Foods
+            .Where(f => f.publicId == publicid)
+            .Select(f => new FoodBypubId
             {
                 publicId = f.publicId,
                 Name = f.Name,
@@ -95,9 +97,8 @@ namespace VizsgaRemekBackend.Services
                 Price = f.Price,
                 Category = f.Category,
                 Images = f.Images
-            }).FirstOrDefaultAsync();
-
-            return dto;
+            })
+            .FirstOrDefaultAsync();
         }
 
         public async Task<string> UpdateFoodAsnyc(Guid publicid, [FromBody] UpdateFoodDto ufood)

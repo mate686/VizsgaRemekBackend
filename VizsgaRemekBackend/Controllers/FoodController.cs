@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 using VizsgaRemekBackend.Dtos;
 using VizsgaRemekBackend.Models;
 using VizsgaRemekBackend.Services;
@@ -25,12 +26,12 @@ namespace VizsgaRemekBackend.Controllers
         }
 
         [HttpGet("{pubid}")]
-        public IActionResult GetFoodById(Guid pubid)
+        public async Task<IActionResult> GetFoodById(Guid pubid)
         {
-            var food = _fs.GetFoodByIdAsnyc(pubid);
+            var food =await _fs.GetFoodByIdAsnyc(pubid);
             if (food == null)
             {
-                return NotFound();
+                return NotFound("Nincs iylen étel");
             }
             return Ok(food);
         }

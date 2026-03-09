@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using VizsgaRemekBackend.Data;
 using VizsgaRemekBackend.Models;
+using Microsoft.OpenApi.Models;
 
 namespace VizsgaRemekBackend
 {
@@ -92,6 +93,43 @@ namespace VizsgaRemekBackend
                 };
             });
 
+            builder.Services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "VizsgaBackend", Version = "v1" });
+
+
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+
+                {
+
+                    Name = "Authorization",
+
+                    Type = SecuritySchemeType.Http,
+
+                    Scheme = "bearer",
+
+                    BearerFormat = "JWT",
+
+                    In = ParameterLocation.Header,
+
+                    Description = "Írd be: Bearer {token}"
+
+                });
+
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                new OpenApiSecurityScheme
+                {
+                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
+                },
+                Array.Empty<string>()
+                    }
+
+                });
+
+            });
+
 
             builder.Services.AddAuthorization();
 
@@ -102,7 +140,8 @@ namespace VizsgaRemekBackend
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
-                app.MapOpenApi();
+                app.UseSwagger();
+                app.UseSwaggerUI();
             }
 
             app.UseHttpsRedirection();

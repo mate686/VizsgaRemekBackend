@@ -17,20 +17,22 @@ namespace VizsgaRemekBackend.Models
         public DbSet<Payment> Payments { get; set; }
 
 
-        private readonly string _conn;
+        /*private readonly string _conn;
 
-        public AppDbContext(IConfiguration conn)
+        public AppDbContext(IConfiguration conn) 
         {
             _conn = conn.GetConnectionString("DefaultConnection");            
-        }
+        }*/
 
         public AppDbContext(DbContextOptions<AppDbContext> options)
-       : base(options) { }
+        : base(options)
+        {
+        }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        /*protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseMySql(_conn, ServerVersion.AutoDetect(_conn));
-        }
+        }*/
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

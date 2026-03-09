@@ -13,37 +13,13 @@ namespace VizsgaRemekBackend
 
             // Add services to the container.
 
-            builder.Services.AddDbContext<Models.AppDbContext>();
+            //builder.Services.AddDbContext<Models.AppDbContext>();
 
             builder.Services.AddScoped<Services.IFoodService, Services.FoodService>();
 
             builder.Services.AddControllers();
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
-
-            //elso proba az identity létrehozására
-            //Adatbázis lehetség megadása, Identity-hez szükséges szolgáltatások hozzáadása, token provider hozzáadása
-            /*builder.Services.AddIdentity<User, IdentityRole>()
-            .AddEntityFrameworkStores<AppDbContext>()
-            .AddDefaultTokenProviders();*/
-
-
-            //Másik proba  az identity létrehozására
-            /*builder.Services.AddDbContext<AppDbContext>(options =>
-
-            options.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"),ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))));
-
-
-            builder.Services.AddIdentityCore<User>(options =>
-            {
-                options.SignIn.RequireConfirmedAccount = false;
-            })
-            .AddEntityFrameworkStores<AppDbContext>();*/
-
-            //eddigi végleges megoldás az identity létrehozására
-            builder.Services.AddIdentityCore<User>()
-            .AddRoles<IdentityRole>()
-            .AddEntityFrameworkStores<AppDbContext>();
 
             //Identity konfiguráció még nincs beállítva
             /*builder.Services.Configure<IdentityOptions>(options =>
@@ -68,6 +44,16 @@ namespace VizsgaRemekBackend
 
                 options.SignIn.RequireConfirmedEmail = false;
             });*/
+
+            builder.Services.AddDbContext<AppDbContext>(options =>
+            options.UseMySql(
+                builder.Configuration.GetConnectionString("DefaultConnection"),
+                ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))
+            ));
+
+            builder.Services.AddIdentity<User, IdentityRole>()
+                .AddEntityFrameworkStores<AppDbContext>()
+                .AddDefaultTokenProviders();
 
             var app = builder.Build();
 

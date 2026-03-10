@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using VizsgaRemekBackend.Dtos;
+using VizsgaRemekBackend.Dtos.FoodDtos;
 using VizsgaRemekBackend.Models;
 
 
-namespace VizsgaRemekBackend.Services
+namespace VizsgaRemekBackend.Services.FoodServices
 {
     public interface IFoodService
     {

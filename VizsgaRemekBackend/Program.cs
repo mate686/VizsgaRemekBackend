@@ -6,6 +6,8 @@ using System.Text;
 using VizsgaRemekBackend.Data;
 using VizsgaRemekBackend.Models;
 using Microsoft.OpenApi.Models;
+using VizsgaRemekBackend.Services.FoodServices;
+using VizsgaRemekBackend.Services.Auth;
 
 namespace VizsgaRemekBackend
 {
@@ -19,7 +21,8 @@ namespace VizsgaRemekBackend
 
             //builder.Services.AddDbContext<Models.AppDbContext>();
 
-            builder.Services.AddScoped<Services.IFoodService, Services.FoodService>();
+            builder.Services.AddScoped<IFoodService, FoodService>();
+            builder.Services.AddScoped<IAuthService, AuthService>();
 
             builder.Services.AddControllers();
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -130,12 +133,24 @@ namespace VizsgaRemekBackend
 
             });
 
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowFrontend",
+                    policy =>
+                    {
+                        policy.WithOrigins("http://localhost:3000")
+                              .AllowAnyHeader()
+                              .AllowAnyMethod();
+                    });
+            });
 
             builder.Services.AddAuthorization();
 
             var app = builder.Build();
 
+            app.UseCors("AllowFrontend");
             app.UseAuthentication();
+            app.UseAuthorization();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -146,7 +161,7 @@ namespace VizsgaRemekBackend
 
             app.UseHttpsRedirection();
 
-            app.UseAuthorization();
+        
 
 
             app.MapControllers();

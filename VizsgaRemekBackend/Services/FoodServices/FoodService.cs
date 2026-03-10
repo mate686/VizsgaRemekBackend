@@ -2,10 +2,11 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using VizsgaRemekBackend.Data;
-using VizsgaRemekBackend.Dtos;
+using VizsgaRemekBackend.Dtos.FoodDtos;
 using VizsgaRemekBackend.Models;
 
-namespace VizsgaRemekBackend.Services
+
+namespace VizsgaRemekBackend.Services.FoodServices
 {
     public class FoodService : IFoodService
     {
@@ -14,6 +15,7 @@ namespace VizsgaRemekBackend.Services
         public FoodService(AppDbContext conn)
         {
             _conn = conn;
+            
         }
 
         public async Task<string> CreateFoodAsnyc([FromBody] CreateFoodDto cfood)

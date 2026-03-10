@@ -2,11 +2,11 @@
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
-using VizsgaRemekBackend.Dtos;
+using VizsgaRemekBackend.Dtos.FoodDtos;
 using VizsgaRemekBackend.Models;
-using VizsgaRemekBackend.Services;
+using VizsgaRemekBackend.Services.FoodServices;
 
-namespace VizsgaRemekBackend.Controllers
+namespace VizsgaRemekBackend.Controllers.Food
 {
     [Route("api/[controller]")]
     [ApiController]

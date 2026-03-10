@@ -1,6 +1,6 @@
 ﻿using VizsgaRemekBackend.Models;
 
-namespace VizsgaRemekBackend.Dtos
+namespace VizsgaRemekBackend.Dtos.FoodDtos
 {
     public class UpdateFoodDto
     {

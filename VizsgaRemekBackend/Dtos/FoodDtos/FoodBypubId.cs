@@ -1,15 +1,15 @@
 ﻿using VizsgaRemekBackend.Models;
 
-namespace VizsgaRemekBackend.Dtos
+namespace VizsgaRemekBackend.Dtos.FoodDtos
 {
-    public class CreateFoodDto
+    public class FoodBypubId
     {
-        public int RestaurantId { get; set; }
+        public Guid publicId { get; set; }
         public string Name { get; set; } = null!;
         public string Description { get; set; } = null!;
         public decimal Price { get; set; }
         public string Category { get; set; } = null!;
-        public Restaurant Restaurant { get; set; } = null!;
+
         public ICollection<FoodImage> Images { get; set; } = new List<FoodImage>();
     }
 }

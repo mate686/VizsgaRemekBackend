@@ -3,6 +3,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Threading.Tasks;
 using VizsgaRemekBackend.Data;
 using VizsgaRemekBackend.Dtos.AuthDtos;
 using VizsgaRemekBackend.Models;
@@ -14,12 +15,14 @@ namespace VizsgaRemekBackend.Services.Auth
         private readonly AppDbContext _conn;
         private readonly IConfiguration _config;
         private readonly UserManager<User> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
 
-        public AuthService(AppDbContext conn, IConfiguration config, UserManager<User> userManager)
+        public AuthService(AppDbContext conn, IConfiguration config, UserManager<User> userManager,RoleManager<IdentityRole> roleManager)
         {
             _conn = conn;
             _config = config;
             _userManager = userManager;
+            _roleManager = roleManager;
         }
         public async Task<string> RegisterAsync(RegisterDto dto)
         {
@@ -37,6 +40,7 @@ namespace VizsgaRemekBackend.Services.Auth
 
             if (result.Succeeded)
             {
+                await _userManager.AddToRoleAsync(user, "User");
                 return "Sikeres regisztráció";
             }
             else
@@ -63,18 +67,27 @@ namespace VizsgaRemekBackend.Services.Auth
             if (!valid)
                 return "Rossz jelszo";
 
-            return GenerateJwtToken(user);
+            return await GenerateJwtToken(user);
         }
 
 
 
-        private string GenerateJwtToken(User user)
+        private async Task<string> GenerateJwtToken(User user)
         {
-            var claims = new[]
+
+           
+            var claims = new List<Claim>
             {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id),
-            new Claim(JwtRegisteredClaimNames.Email, user.Email)
+            new Claim(JwtRegisteredClaimNames.Email, user.Email),
             };
+
+            var userRoles = await _userManager.GetRolesAsync(user);
+            if (userRoles.Any())
+            {
+                claims.Add(new Claim(ClaimTypes.Role, userRoles.First()));
+            }
+
 
             var key = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(_config["Jwt:Key"])

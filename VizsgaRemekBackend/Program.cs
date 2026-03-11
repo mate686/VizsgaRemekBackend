@@ -9,11 +9,12 @@ using Microsoft.OpenApi.Models;
 using VizsgaRemekBackend.Services.FoodServices;
 using VizsgaRemekBackend.Services.Auth;
 
+
 namespace VizsgaRemekBackend
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -64,6 +65,8 @@ namespace VizsgaRemekBackend
 
                 options.SignIn.RequireConfirmedEmail = false;
             });
+
+            
 
             builder.Services.AddAuthentication(options =>
             {
@@ -165,6 +168,12 @@ namespace VizsgaRemekBackend
 
 
             app.MapControllers();
+
+
+            using (var scope = app.Services.CreateScope())
+            {
+                await DbSeeder.SeedAsync(scope.ServiceProvider);
+            }
 
             app.Run();
         }

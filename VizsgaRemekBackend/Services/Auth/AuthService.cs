@@ -17,6 +17,8 @@ namespace VizsgaRemekBackend.Services.Auth
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
 
+        
+
         public AuthService(AppDbContext conn, IConfiguration config, UserManager<User> userManager,RoleManager<IdentityRole> roleManager)
         {
             _conn = conn;
@@ -97,7 +99,7 @@ namespace VizsgaRemekBackend.Services.Auth
 
             var token = new JwtSecurityToken(
                 issuer: _config["Jwt:VizsgaRemekBackend"],
-                audience: _config["Jwt:"],
+                audience: _config["Jwt:Audience"],
                 claims: claims,
                 expires: DateTime.Now.AddHours(2),
                 signingCredentials: creds
@@ -106,5 +108,19 @@ namespace VizsgaRemekBackend.Services.Auth
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
+        //Logout token elmentése egy listaba amibe a kijeltkezetteket tároljuk, (Kijelentkezés és a jwt törlése reactban történik )
+        /*
+        private static HashSet<string> _revokedTokens = new();
+
+        public Task<string?> LogoutAsync(string token)
+        {
+            _revokedTokens.Add(token);
+            return "Sikeres kijelentkezés";
+        }
+
+        public bool IsTokenRevoked(string token)
+        {
+            return _revokedTokens.Contains(token);
+        }*/
     }
 }

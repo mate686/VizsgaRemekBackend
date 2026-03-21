@@ -16,5 +16,7 @@ namespace VizsgaRemekBackend.Services.FoodServices
         public Task<string> UpdateFoodAsnyc(Guid publicid, [FromBody] UpdateFoodDto ufood);
 
         public Task<string> DeleteFoodAsnyc(Guid publicid);
+
+        
     }
 }

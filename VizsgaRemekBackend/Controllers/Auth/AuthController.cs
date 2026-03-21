@@ -11,6 +11,7 @@ using VizsgaRemekBackend.Services.Auth;
 namespace VizsgaRemekBackend.Controllers.Auth
 {
     [Route("api/[controller]")]
+    [Authorize]
     [ApiController]
     public class AuthController : ControllerBase
     {
@@ -22,6 +23,7 @@ namespace VizsgaRemekBackend.Controllers.Auth
         }
 
         [HttpPost("register")]
+        [AllowAnonymous]
         public async Task<IActionResult> Register([FromBody] RegisterDto rdto)
         {
 
@@ -37,7 +39,6 @@ namespace VizsgaRemekBackend.Controllers.Auth
                 return BadRequest(result);
             }
 
-            
             /*if (result)
             {
                 return Created();
@@ -50,6 +51,7 @@ namespace VizsgaRemekBackend.Controllers.Auth
         }
 
         [HttpPost("login")]
+        [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginDto ldto)
         {
 
@@ -67,10 +69,17 @@ namespace VizsgaRemekBackend.Controllers.Auth
             {
                 return Ok(new {token});
             }
-
-
-
         }
+
+        //Kijelentkezés reactban történik a token törlése a localstorage-ból
+        /*
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            await _ats.LogoutAsync();
+            return Ok("Sikeres kijelentkezés");
+        }*/
+
 
     }
 }

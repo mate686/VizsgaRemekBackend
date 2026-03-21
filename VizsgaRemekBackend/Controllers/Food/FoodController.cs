@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
@@ -10,6 +11,7 @@ namespace VizsgaRemekBackend.Controllers.Food
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class FoodController : ControllerBase
     {
         private readonly IFoodService _fs;
@@ -20,12 +22,14 @@ namespace VizsgaRemekBackend.Controllers.Food
         }
 
         [HttpGet("allfood")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetFoods()
         {
             return Ok(await _fs.GetAllFoodAsync());
         }
 
         [HttpGet("{pubid}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetFoodById(Guid pubid)
         {
             var food =await _fs.GetFoodByIdAsnyc(pubid);
@@ -37,6 +41,7 @@ namespace VizsgaRemekBackend.Controllers.Food
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public IActionResult CreateFood([FromBody] CreateFoodDto cfood)
         {
             string result = _fs.CreateFoodAsnyc(cfood).ToString();
@@ -52,6 +57,7 @@ namespace VizsgaRemekBackend.Controllers.Food
         }
 
         [HttpPatch("update/{pubid}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateFood(Guid pubid, [FromBody] UpdateFoodDto ufood)
         {
             string result = await _fs.UpdateFoodAsnyc(pubid, ufood);
@@ -71,6 +77,7 @@ namespace VizsgaRemekBackend.Controllers.Food
         }
 
         [HttpDelete("delete/{pubid}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteFood(Guid pubid)
         {
             string result = await _fs.DeleteFoodAsnyc(pubid);

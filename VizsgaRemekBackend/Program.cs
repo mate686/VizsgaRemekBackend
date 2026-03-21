@@ -8,6 +8,7 @@ using VizsgaRemekBackend.Models;
 using Microsoft.OpenApi.Models;
 using VizsgaRemekBackend.Services.FoodServices;
 using VizsgaRemekBackend.Services.Auth;
+using VizsgaRemekBackend.Services.Orders;
 
 
 namespace VizsgaRemekBackend
@@ -24,6 +25,7 @@ namespace VizsgaRemekBackend
 
             builder.Services.AddScoped<IFoodService, FoodService>();
             builder.Services.AddScoped<IAuthService, AuthService>();
+            builder.Services.AddScoped<IOrderService, OrderService>();
 
             builder.Services.AddControllers();
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -91,7 +93,7 @@ namespace VizsgaRemekBackend
 
                     ValidIssuer = builder.Configuration["Jwt:VizsgaRemekBackend"],
 
-                    ValidAudience = builder.Configuration["Jwt:"],
+                    ValidAudience = builder.Configuration["Jwt:Audience"],
 
                     IssuerSigningKey = new SymmetricSecurityKey(
 

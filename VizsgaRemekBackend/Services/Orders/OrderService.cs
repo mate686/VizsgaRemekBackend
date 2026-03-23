@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using VizsgaRemekBackend.Data;
+using VizsgaRemekBackend.Dtos.OrdeeDtos;
 using VizsgaRemekBackend.Models;
 
 namespace VizsgaRemekBackend.Services.Orders
@@ -27,13 +28,67 @@ namespace VizsgaRemekBackend.Services.Orders
             }
         }
 
-        public async Task<bool> CreateOrderAsync(Guid pubid, Guid fId)
+        public async Task<string> CreateOrderAsync(Guid pubid, List<OrderItemDTO> orderItems)
         {
             User user = await _conn.Users.FirstOrDefaultAsync(x => Guid.Parse(x.Id) == pubid);
 
-            Food food = await _conn.Foods.FirstOrDefaultAsync(x => x.publicId == fId);
+           Order orders = user.Orders.FirstOrDefault(x => x.Status == "pending");
 
-            return true;
+            if (orders == null)
+            {
+                orders = new Order
+                {
+                    Status = "pending",
+                    TotalPrice = 0,
+                    User = user,
+                    OrderItems = new List<OrderItem>()
+                };
+
+                foreach (var item in orders.OrderItems)
+                {
+                    OrderItem oi = new OrderItem
+                    {
+                        FoodId = item.FoodId,
+                        Quantity = item.Quantity,
+                        Food = item.Food,
+                        OrderId = orders.Id,
+                        Order = orders
+                    };
+
+
+                    orders.OrderItems.Add(oi);
+                }
+
+                _conn.Orders.Update(orders);
+                await _conn.SaveChangesAsync();
+
+            }
+            else
+            {
+                foreach (var item in orders.OrderItems)
+                {
+                    OrderItem oi = new OrderItem
+                    {
+                        FoodId = item.FoodId,
+                        Quantity = item.Quantity,
+                        Food = item.Food,
+                        OrderId = orders.Id,
+                        Order = orders
+                    };
+
+                    
+                    orders.OrderItems.Add(oi);
+                }
+
+                _conn.Orders.Update(orders);
+                await _conn.SaveChangesAsync();
+
+
+            }
+
+            //Food food = await _conn.Foods.FirstOrDefaultAsync(x => x.publicId == fId);
+
+            return "Sikeres";
         }
 
         public async Task<bool> DeleteOrderAsync(Guid publicid)
@@ -63,12 +118,14 @@ namespace VizsgaRemekBackend.Services.Orders
             return await _conn.Orders.FirstOrDefaultAsync(x => x.publicId == publicid);
         }
 
+
         public Task<bool> MadeOrderPaid(Guid publicid)
         {
             _conn.Orders.FirstOrDefault(x => x.publicId == publicid).Status = "Paid";
 
             return Task.FromResult(true);
         }
+
 
         public Task<bool> UpdateOrderAsync(Guid publicid, Order order)
         {

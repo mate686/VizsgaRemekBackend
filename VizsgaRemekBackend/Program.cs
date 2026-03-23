@@ -9,6 +9,9 @@ using Microsoft.OpenApi.Models;
 using VizsgaRemekBackend.Services.FoodServices;
 using VizsgaRemekBackend.Services.Auth;
 using VizsgaRemekBackend.Services.Orders;
+using VizsgaRemekBackend.Services.Favorites;
+using VizsgaRemekBackend.Services.Reviews;
+using VizsgaRemekBackend.Services.Restaurants;
 
 
 namespace VizsgaRemekBackend
@@ -26,6 +29,9 @@ namespace VizsgaRemekBackend
             builder.Services.AddScoped<IFoodService, FoodService>();
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IOrderService, OrderService>();
+            builder.Services.AddScoped<IFavoriteService, FavoriteService>();
+            builder.Services.AddScoped<IReviewsService, ReviewService>();
+            builder.Services.AddScoped<IRestaurantService, RestaurantService>();
 
             builder.Services.AddControllers();
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -93,7 +99,7 @@ namespace VizsgaRemekBackend
 
                     ValidIssuer = builder.Configuration["Jwt:VizsgaRemekBackend"],
 
-                    ValidAudience = builder.Configuration["Jwt:Audience"],
+                    ValidAudience = builder.Configuration["Jwt:VizsgaRemekFrontend"],
 
                     IssuerSigningKey = new SymmetricSecurityKey(
 
@@ -143,7 +149,7 @@ namespace VizsgaRemekBackend
                 options.AddPolicy("AllowFrontend",
                     policy =>
                     {
-                        policy.WithOrigins("http://localhost:3000")
+                        policy.WithOrigins("http://localhost:5173")
                               .AllowAnyHeader()
                               .AllowAnyMethod();
                     });

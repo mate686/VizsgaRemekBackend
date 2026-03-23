@@ -1,4 +1,5 @@
-﻿using VizsgaRemekBackend.Models;
+﻿using VizsgaRemekBackend.Dtos.OrdeeDtos;
+using VizsgaRemekBackend.Models;
 
 namespace VizsgaRemekBackend.Services.Orders
 {
@@ -9,7 +10,7 @@ namespace VizsgaRemekBackend.Services.Orders
 
         public Task<Order?> GetOrderByIdAsync(Guid publicid);
 
-        public Task<bool> CreateOrderAsync(Guid pubid, Guid fId);
+        public Task<string> CreateOrderAsync(Guid pubid, List<OrderItemDTO> orderItems);
 
         public Task<bool> UpdateOrderAsync(Guid publicid, Order order);
 

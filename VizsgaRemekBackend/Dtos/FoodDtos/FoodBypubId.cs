@@ -1,4 +1,5 @@
-﻿using VizsgaRemekBackend.Models;
+﻿using VizsgaRemekBackend.Dtos.FoodImagesDto;
+using VizsgaRemekBackend.Models;
 
 namespace VizsgaRemekBackend.Dtos.FoodDtos
 {
@@ -10,6 +11,6 @@ namespace VizsgaRemekBackend.Dtos.FoodDtos
         public decimal Price { get; set; }
         public string Category { get; set; } = null!;
 
-        public ICollection<FoodImage> Images { get; set; } = new List<FoodImage>();
+        public ICollection<FoodImageDto> Images { get; set; } = new List<FoodImageDto>();
     }
 }

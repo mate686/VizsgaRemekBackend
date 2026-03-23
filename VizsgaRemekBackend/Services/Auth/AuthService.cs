@@ -99,7 +99,7 @@ namespace VizsgaRemekBackend.Services.Auth
 
             var token = new JwtSecurityToken(
                 issuer: _config["Jwt:VizsgaRemekBackend"],
-                audience: _config["Jwt:Audience"],
+                audience: _config["Jwt:VizsgaRemekFrontend"],
                 claims: claims,
                 expires: DateTime.Now.AddHours(2),
                 signingCredentials: creds

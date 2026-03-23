@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using VizsgaRemekBackend.Data;
 using VizsgaRemekBackend.Dtos.FoodDtos;
+using VizsgaRemekBackend.Dtos.FoodImagesDto;
 using VizsgaRemekBackend.Models;
 
 
@@ -98,7 +99,10 @@ namespace VizsgaRemekBackend.Services.FoodServices
                 Description = f.Description,
                 Price = f.Price,
                 Category = f.Category,
-                Images = f.Images
+                Images = f.Images.Select(i => new FoodImageDto
+                {
+                    ImageUrl = i.ImageUrl
+                }).ToList()
             })
             .FirstOrDefaultAsync();
         }

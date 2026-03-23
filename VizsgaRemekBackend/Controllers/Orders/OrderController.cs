@@ -39,7 +39,7 @@ namespace VizsgaRemekBackend.Controllers.Orders
 
         [HttpPost("makeOrder")]
         [Authorize(Roles = "User")]
-        public async Task<IActionResult> MakeOrder([FromBody] Order order)
+        public async Task<IActionResult> MakeOrder([FromBody] List<OrderItem> orderItems)
         {
             try
             {
@@ -57,24 +57,24 @@ namespace VizsgaRemekBackend.Controllers.Orders
         }
 
         [HttpPost("completeOrder")]
-        [Authorize(Roles = "Admin")]
-        public IActionResult SetCompleteOrder(Guid pubid)
-        {
-            if (_iod.CompleteOrderAsync(pubid).Result)
-            {
-                return Ok("Sikeres rendelés teljesítése");
-            }
-            else
-            {
-                return BadRequest("Sikertelen rendelés teljesítése");
-            }
-        }
+         [Authorize(Roles = "Admin")]
+         public IActionResult SetCompleteOrder(Guid pubid)
+         {
+             if (_iod.CompleteOrderAsync(pubid).Result)
+             {
+                 return Ok("Sikeres rendelés teljesítése");
+             }
+             else
+             {
+                 return BadRequest("Sikertelen rendelés teljesítése");
+             }
+         }
 
         [HttpPost("deleteOrder/{pubid}")]
         [Authorize(Roles = "User")]
         public async Task<IActionResult> DeleteOrder(Guid pubid)
         {
-            
+
             if (await _iod.DeleteOrderAsync(pubid))
             {
                 return Ok("Sikeres törlés");
@@ -86,7 +86,7 @@ namespace VizsgaRemekBackend.Controllers.Orders
 
         }
 
-        [HttpPost("deleteOrder/{pubid}")]
+        [HttpPost("makeOrderPaid/{pubid}")]
         [Authorize(Roles = "User")]
         public IActionResult MakeOrderPaid(Guid pubId)
         {
@@ -97,7 +97,6 @@ namespace VizsgaRemekBackend.Controllers.Orders
             else            {
                 return BadRequest("Sikertelen fizetés");
             }
-            return Ok();
         }
 
     }

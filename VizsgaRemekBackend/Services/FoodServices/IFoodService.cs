@@ -17,6 +17,6 @@ namespace VizsgaRemekBackend.Services.FoodServices
 
         public Task<string> DeleteFoodAsnyc(Guid publicid);
 
-        
+        public Task<UpdateFoodDto> GetUpdateFoodAsnyc(Guid publicid);
     }
 }

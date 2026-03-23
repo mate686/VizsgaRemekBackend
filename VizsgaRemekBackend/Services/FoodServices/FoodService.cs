@@ -107,6 +107,22 @@ namespace VizsgaRemekBackend.Services.FoodServices
             .FirstOrDefaultAsync();
         }
 
+        public async Task<UpdateFoodDto?> GetUpdateFoodAsnyc(Guid publicid)
+        {
+            return await _conn.Foods.Where(f => f.publicId == publicid)
+                .Select(f => new UpdateFoodDto
+                {
+                    Name = f.Name,
+                    Description = f.Description,
+                    Price = f.Price,
+                    Category = f.Category,
+                    Images = f.Images.Select(i => new FoodImageDto
+                    {
+                        ImageUrl = i.ImageUrl
+                    }).ToList()
+                }).FirstOrDefaultAsync();
+        }
+
         public async Task<string> UpdateFoodAsnyc(Guid publicid, [FromBody] UpdateFoodDto ufood)
         {
             try
@@ -118,26 +134,15 @@ namespace VizsgaRemekBackend.Services.FoodServices
                     return "Nem található ilyen étel";
                 }
 
-
-                if (ufood.Name != null)
+                food.Name = ufood.Name;
+                food.Description = ufood.Description;
+                food.Price = (decimal)ufood.Price;
+                food.Category = ufood.Category;
+                food.Images = food.Images.Select(i => new FoodImage
                 {
-                    food.Name = ufood.Name;
-                }
-                if (ufood.Description != null)
-                {
-                    food.Description = ufood.Description;
-                }
-                if (ufood.Price != null)
-                {
-                    food.Price = (decimal)ufood.Price;
-                }
-                if (ufood.Category != null)
-                {
-                    food.Category = ufood.Category;
-                }
-                if (ufood.Images != null) {
-                    food.Images = ufood.Images;
-                }
+                    ImageUrl = i.ImageUrl
+                }).ToList();
+                
 
                 return "Sikeres módosítás";
             }

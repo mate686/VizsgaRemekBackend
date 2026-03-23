@@ -28,7 +28,7 @@ namespace VizsgaRemekBackend.Controllers.Food
             return Ok(await _fs.GetAllFoodAsync());
         }
 
-        [HttpGet("{pubid}")]
+        [HttpGet("getfoodbyid/{pubid}")]
         [AllowAnonymous]
         public async Task<IActionResult> GetFoodById(Guid pubid)
         {
@@ -40,7 +40,7 @@ namespace VizsgaRemekBackend.Controllers.Food
             return Ok(food);
         }
 
-        [HttpPost]
+        [HttpPost("createFood")]
         [Authorize(Roles = "Admin")]
         public IActionResult CreateFood([FromBody] CreateFoodDto cfood)
         {
@@ -54,6 +54,21 @@ namespace VizsgaRemekBackend.Controllers.Food
             {
                 return BadRequest(result);
             }
+        }
+
+
+        [HttpPatch("getupdate/{pubid}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetUpdateFood(Guid pubid)
+        {
+            UpdateFoodDto food = await _fs.GetUpdateFoodAsnyc(pubid);
+            
+            if (food == null)
+            {
+                return NotFound("Nincs iylen étel");
+            }
+            return Ok(food);
+
         }
 
         [HttpPatch("update/{pubid}")]

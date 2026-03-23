@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using VizsgaRemekBackend.Dtos.RestaurantDtos;
 using VizsgaRemekBackend.Services.Restaurants;
@@ -7,6 +8,7 @@ namespace VizsgaRemekBackend.Controllers.Restaurant
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class RestaurantController : ControllerBase
     {
         private readonly IRestaurantService _irs;
@@ -17,6 +19,7 @@ namespace VizsgaRemekBackend.Controllers.Restaurant
         }
 
         [HttpGet("allRestaurant")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAllRestaurants()
         {
 
@@ -24,6 +27,7 @@ namespace VizsgaRemekBackend.Controllers.Restaurant
         }
 
         [HttpGet("getRestaurant/{pubid}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetRestaurantById(Guid pubid)
         {
             GetRestaurantDto restaurant = await _irs.GetRestaurantByIdAsnyc(pubid);
@@ -32,6 +36,69 @@ namespace VizsgaRemekBackend.Controllers.Restaurant
                 return NotFound("Nincs iylen étterem");
             }
             return Ok(restaurant);
+        }
+
+        [HttpPost("createRestaurant")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CreateRestaurant([FromBody] CreateRestaurantDto dto)
+        {
+            if (await _irs.CreateRestaurantAsync(dto))
+            {
+                return BadRequest("Nem sikerült létrehozni az éttermet");
+            }
+
+            return Ok("Sikeres létrehozás");
+        }
+
+        [HttpDelete("deleteRestaurant/{pubid}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteRestaurant(Guid pubid)
+        {
+            string result = await _irs.DeleteRestaurantAsync(pubid);
+            if (result == "Sikeres törlés")
+            {
+                return Ok(result);
+            }
+            else if (result == "Nem található ilyen étterem")
+            {
+                return NotFound(result);
+            }
+            else
+            {
+                return BadRequest(result);
+            }
+        }
+
+        [HttpPatch("getupdateRestaurant/{pubid}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetUpdateRestaurant(Guid pubid)
+        {
+            CreateRestaurantDto restaurant = await _irs.GetUpdateRestaurantAsnyc(pubid);
+            if (restaurant == null)
+            {
+                return NotFound("Nincs iylen étterem");
+            }
+            return Ok(restaurant);
+
+        }
+
+        [HttpPatch("updateRestaurant/{pubid}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UpdateRestaurant(Guid pubid, [FromBody] CreateRestaurantDto dto)
+        {
+            string result = await _irs.UpdateRestaurantAsync(pubid, dto);
+            if (result == "Sikeres módosítás")
+            {
+                return Ok(result);
+            }
+            else if (result == "Nem található ilyen étterem")
+            {
+                return NotFound(result);
+            }
+            else
+            {
+                return BadRequest(result);
+            }
         }
     }
 }

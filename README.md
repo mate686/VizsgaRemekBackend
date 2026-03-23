@@ -6,5 +6,10 @@
 
 -Visual Studio 2022  
 -Visual Studio 2026  
--Xampp Mysql Database
+-Xampp Mysql Database  
 -Insomnia (végpontok tesztelése)
+
+
+## Speciális függvények 
+
+## Végpontok 

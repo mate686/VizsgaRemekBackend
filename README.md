@@ -13,7 +13,7 @@
 ## Speciális függvények 
 
 # JWT token generálás
-{
+
     private async Task<string> GenerateJwtToken(User user)
     {
     var claims = new List<Claim>
@@ -43,7 +43,7 @@
           );
           return new JwtSecurityTokenHandler().WriteToken(token);
     }
-}
+
 
 #JWT adatok  
 -felhasználó publikus idja (Guidja)    

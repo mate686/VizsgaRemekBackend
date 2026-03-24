@@ -12,10 +12,11 @@
 
 ## Speciális függvények 
 
-# JWT token generálás  
-private async Task<string> GenerateJwtToken(User user)
+# JWT token generálás
 {
-  var claims = new List<Claim>
+    private async Task<string> GenerateJwtToken(User user)
+    {
+    var claims = new List<Claim>
       {
       new Claim(JwtRegisteredClaimNames.Sub, user.Id),
       new Claim(JwtRegisteredClaimNames.Email, user.Email),
@@ -41,6 +42,7 @@ private async Task<string> GenerateJwtToken(User user)
               signingCredentials: creds
           );
           return new JwtSecurityTokenHandler().WriteToken(token);
+    }
 }
 
 #JWT adatok  

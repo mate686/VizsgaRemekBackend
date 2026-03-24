@@ -98,6 +98,7 @@ namespace VizsgaRemekBackend.Services.Restaurants
 
                     Reviews = r.Reviews.Select(rev => new RestaurantReviewsDto
                     {
+                        PublicId = rev.PublicId,
                         Rating = rev.Rating,
                         Comment = rev.Comment,
                         User = new UserDto

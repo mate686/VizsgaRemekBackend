@@ -1,5 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using VizsgaRemekBackend.Dtos.ReviewsDto;
 using VizsgaRemekBackend.Services.Reviews;
 
 namespace VizsgaRemekBackend.Controllers.Review
@@ -13,6 +16,94 @@ namespace VizsgaRemekBackend.Controllers.Review
         public ReviewController(IReviewsService irs)
         {
             _irs = irs;
+        }
+
+        [HttpGet("allReview")]
+        [Authorize(Roles = "Admin,User")]
+        public async Task<IActionResult> GetAllReviews()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("Nem található felhasználói azonosító a tokenben.");
+            }
+            return Ok(await _irs.GetAllReviewsAsync(userId));
+        }
+
+
+        [HttpPost("createReview")]
+        [Authorize(Roles = "Admin,User")]
+        public async Task<IActionResult> CreateReview([FromBody] CreateReviewDto dto)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            /*if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("Nem található felhasználói azonosító a tokenben.");
+            }*/
+            string result = await _irs.CreateReviewAsync(dto, userId);
+            if (result == "Sikeres értékelés létrehozás")
+            {
+                return Ok(result);
+            }
+            else
+            {
+                return BadRequest(result);
+            }
+        }
+
+        [HttpDelete("deleteReview/{pubid}")]
+        [Authorize(Roles = "Admin,User")]
+        public async Task<IActionResult> DeleteReview(Guid pubid)
+        {
+            string result = await _irs.DeleteReviewAsync(pubid);
+            if (result == "Sikeres törlés")
+            {
+                return Ok(result);
+            }
+            else if (result == "Nincs ilyen értékelés")
+            {
+                return NotFound(result);
+            }
+            else
+            {
+                return BadRequest(result);
+            }
+        }
+
+        [HttpGet("getReview/{pubid}")]
+        [Authorize(Roles = "Admin,User")]
+        public async Task<IActionResult> GetReview(Guid pubid)
+        {
+            var review = await _irs.GetReviewAsync(pubid);
+            if (review != null)
+            {
+                return Ok(review);
+            }
+            else
+            {
+                return NotFound("Nincs ilyen értékelés");
+            }
+        }
+
+
+        [HttpPatch("updateReview")]
+        [Authorize(Roles = "Admin,User")]
+        public async Task<IActionResult> UpdateReview([FromBody] UpdateReviewDto dto)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            string result = await _irs.UpdateReviewAsync(userId, dto);
+            if (result == "Sikeres értékelés frissítés")
+            {
+                return Ok(result);
+            }
+            else if (result == "Nem található ilyen értékelés")
+            {
+                return NotFound(result);
+            }
+            else
+            {
+                return BadRequest(result);
+            }
         }
     }
 }

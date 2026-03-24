@@ -19,7 +19,7 @@ namespace VizsgaRemekBackend.Services.FoodServices
             
         }
 
-        public async Task<string> CreateFoodAsnyc([FromBody] CreateFoodDto cfood)
+        public async Task<string> CreateFoodAsnyc(CreateFoodDto cfood)
         {
             try
             {
@@ -123,7 +123,7 @@ namespace VizsgaRemekBackend.Services.FoodServices
                 }).FirstOrDefaultAsync();
         }
 
-        public async Task<string> UpdateFoodAsnyc(Guid publicid, [FromBody] UpdateFoodDto ufood)
+        public async Task<string> UpdateFoodAsnyc(Guid publicid,UpdateFoodDto ufood)
         {
             try
             {

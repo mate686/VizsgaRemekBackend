@@ -30,7 +30,7 @@ namespace VizsgaRemekBackend.Services.Orders
 
         public async Task<string> CreateOrderAsync(Guid pubid, List<OrderItemDTO> orderItems)
         {
-            User user = await _conn.Users.FirstOrDefaultAsync(x => Guid.Parse(x.Id) == pubid);
+           User user = await _conn.Users.FirstOrDefaultAsync(x => Guid.Parse(x.Id) == pubid);
 
            Order orders = user.Orders.FirstOrDefault(x => x.Status == "pending");
 

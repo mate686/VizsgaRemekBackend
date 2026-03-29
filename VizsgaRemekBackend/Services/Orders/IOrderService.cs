@@ -1,5 +1,5 @@
-﻿using VizsgaRemekBackend.Controllers.Orders;
-using VizsgaRemekBackend.Dtos.OrdeeDtos;
+﻿using VizsgaRemekBackend.Dtos.OrdeeDtos;
+using VizsgaRemekBackend.Dtos.OrderDtos;
 using VizsgaRemekBackend.Models;
 
 namespace VizsgaRemekBackend.Services.Orders

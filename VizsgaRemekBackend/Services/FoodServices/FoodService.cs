@@ -1,11 +1,8 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using VizsgaRemekBackend.Data;
 using VizsgaRemekBackend.Dtos.FoodDtos;
 using VizsgaRemekBackend.Dtos.FoodImagesDto;
 using VizsgaRemekBackend.Models;
-
 
 namespace VizsgaRemekBackend.Services.FoodServices
 {
@@ -16,100 +13,76 @@ namespace VizsgaRemekBackend.Services.FoodServices
         public FoodService(AppDbContext conn)
         {
             _conn = conn;
-            
         }
 
-        public async Task<string> CreateFoodAsnyc(CreateFoodDto cfood)
+        public async Task<bool> CreateFoodAsync(CreateFoodDto cfood)
         {
-            try
+            var food = new Food
             {
-                Food food = new Food
+                publicId = Guid.NewGuid(),
+                Name = cfood.Name,
+                Description = cfood.Description,
+                Price = cfood.Price,
+                Category = cfood.Category,
+                RestaurantId = cfood.RestaurantId,
+  
+                Images = cfood.Images.Select(i => new FoodImage
                 {
-                    publicId = Guid.NewGuid(),
-                    Name = cfood.Name,
-                    Description = cfood.Description,
-                    Price = cfood.Price,
-                    Category = cfood.Category,
-                    RestaurantId = cfood.RestaurantId,
-                    Images = cfood.Images
-                };
+                    ImageUrl = i.ImageUrl
+                }).ToList()
+            };
 
-                _conn.Foods.Add(food);
-                await _conn.SaveChangesAsync();
-
-                return "Sikeres feltöltés";
-            }
-            catch (Exception err)
-            {
-                return $"Hiba történt: {err.Message}";
-            }
-
+            _conn.Foods.Add(food);
+            return await _conn.SaveChangesAsync() > 0;
         }
 
-        public async Task<string> DeleteFoodAsnyc(Guid publicid)
+        public async Task<bool> DeleteFoodAsync(Guid publicid)
         {
-            try
-            {
-                Food? food =await _conn.Foods.FirstOrDefaultAsync(f => f.publicId == publicid);
+            var food = await _conn.Foods.FirstOrDefaultAsync(f => f.publicId == publicid);
 
-                if (food == null)
-                {
-                    return "Nem található ilyen étel";
-                }
-                else
-                {
-                    _conn.Foods.Remove(food);
-                    await _conn.SaveChangesAsync();
-                    return "Sikeres törlés";
-                }
+            if (food == null) return false;
 
-                
-            }
-            catch (Exception err)
-            {
-                return $"Hiba történt: {err.Message}";
-
-            }
+            _conn.Foods.Remove(food);
+            return await _conn.SaveChangesAsync() > 0;
         }
 
         public async Task<List<AllFoodDto>> GetAllFoodAsync()
         {
-            List<AllFoodDto> allFood = await _conn.Foods
+            return await _conn.Foods
                 .Select(f => new AllFoodDto
                 {
                     publicId = f.publicId,
                     Name = f.Name,
                     Price = f.Price,
                     Category = f.Category,
-                    Images = f.Images
+                    ImageUrl = f.Images.Select(i => i.ImageUrl ).ToList()
                 })
                 .ToListAsync();
-
-            return allFood;
         }
 
-        public async Task<FoodBypubId?> GetFoodByIdAsnyc(Guid publicid)
+        public async Task<FoodBypubId?> GetFoodByIdAsync(Guid publicid)
         {
             return await _conn.Foods
-            .Where(f => f.publicId == publicid)
-            .Select(f => new FoodBypubId
-            {
-                publicId = f.publicId,
-                Name = f.Name,
-                Description = f.Description,
-                Price = f.Price,
-                Category = f.Category,
-                Images = f.Images.Select(i => new FoodImageDto
+                .Where(f => f.publicId == publicid)
+                .Select(f => new FoodBypubId
                 {
-                    ImageUrl = i.ImageUrl
-                }).ToList()
-            })
-            .FirstOrDefaultAsync();
+                    publicId = f.publicId,
+                    Name = f.Name,
+                    Description = f.Description,
+                    Price = f.Price,
+                    Category = f.Category,
+                    Images = f.Images.Select(i => new FoodImageDto
+                    {
+                        ImageUrl = i.ImageUrl
+                    }).ToList()
+                })
+                .FirstOrDefaultAsync();
         }
 
-        public async Task<UpdateFoodDto?> GetUpdateFoodAsnyc(Guid publicid)
+        public async Task<UpdateFoodDto?> GetUpdateFoodAsync(Guid publicid)
         {
-            return await _conn.Foods.Where(f => f.publicId == publicid)
+            return await _conn.Foods
+                .Where(f => f.publicId == publicid)
                 .Select(f => new UpdateFoodDto
                 {
                     Name = f.Name,
@@ -123,35 +96,32 @@ namespace VizsgaRemekBackend.Services.FoodServices
                 }).FirstOrDefaultAsync();
         }
 
-        public async Task<string> UpdateFoodAsnyc(Guid publicid,UpdateFoodDto ufood)
+        public async Task<bool> UpdateFoodAsync(Guid publicid, UpdateFoodDto ufood)
         {
-            try
+
+            var food = await _conn.Foods
+                .Include(f => f.Images)
+                .FirstOrDefaultAsync(f => f.publicId == publicid);
+
+            if (food == null) return false;
+
+            // Alap adatok frissítése
+            food.Name = ufood.Name;
+            food.Description = ufood.Description;
+            food.Price = (decimal)ufood.Price;
+            food.Category = ufood.Category;
+            food.UpdatedAt = DateTime.UtcNow;
+
+    
+            _conn.FoodImages.RemoveRange(food.Images);
+
+            food.Images = ufood.Images.Select(i => new FoodImage
             {
-                Food food = await _conn.Foods.FirstOrDefaultAsync(f => f.publicId == publicid);
-
-                if (food == null)
-                {
-                    return "Nem található ilyen étel";
-                }
-
-                food.Name = ufood.Name;
-                food.Description = ufood.Description;
-                food.Price = (decimal)ufood.Price;
-                food.Category = ufood.Category;
-                food.Images = food.Images.Select(i => new FoodImage
-                {
-                    ImageUrl = i.ImageUrl
-                }).ToList();
-                
-
-                return "Sikeres módosítás";
-            }
-            catch (Exception err)
-            {
-                return $"Hiba történt: {err.Message}";
+                ImageUrl = i.ImageUrl
+            }).ToList();
 
 
-            }
+            return await _conn.SaveChangesAsync() > 0;
         }
     }
 }

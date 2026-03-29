@@ -12,103 +12,62 @@ namespace VizsgaRemekBackend.Controllers.Food
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-    public class FoodController : ControllerBase
+    public class FoodsController : ControllerBase
     {
-        private readonly IFoodService _fs;
+        private readonly IFoodService _foodService;
 
-        public FoodController(IFoodService fs)
+        public FoodsController(IFoodService foodService)
         {
-            _fs = fs;
+            _foodService = foodService;
         }
 
-        [HttpGet("allfood")]
-        [AllowAnonymous]
-        public async Task<IActionResult> GetFoods()
+        
+        [HttpGet]
+        public async Task<ActionResult<List<AllFoodDto>>> GetAll()
         {
-            return Ok(await _fs.GetAllFoodAsync());
+            var foods = await _foodService.GetAllFoodAsync();
+            return Ok(foods);
         }
 
-        [HttpGet("getfoodbyid/{pubid}")]
-        [AllowAnonymous]
-        public async Task<IActionResult> GetFoodById(Guid pubid)
+  
+        [HttpGet("{publicid}")]
+        public async Task<ActionResult<FoodBypubId>> GetById(Guid publicid)
         {
-            var food =await _fs.GetFoodByIdAsnyc(pubid);
-            if (food == null)
-            {
-                return NotFound("Nincs iylen étel");
-            }
+            var food = await _foodService.GetFoodByIdAsync(publicid);
+            if (food == null) return NotFound(new { message = "Az étel nem található." });
+
             return Ok(food);
         }
 
-        [HttpPost("createFood")]
-        [Authorize(Roles = "Admin")]
-        public IActionResult CreateFood([FromBody] CreateFoodDto cfood)
+   
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] CreateFoodDto dto)
         {
-            string result = _fs.CreateFoodAsnyc(cfood).ToString();
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            if (result == "Sikeres feltöltés")
-            {
-                return Created();
-            }
-            else
-            {
-                return BadRequest(result);
-            }
+            var success = await _foodService.CreateFoodAsync(dto);
+            if (!success) return BadRequest(new { message = "Hiba történt a mentés során." });
+
+            return StatusCode(201, new { message = "Étel sikeresen létrehozva!" });
+        }
+
+        [HttpPut("{publicid}")]
+        public async Task<IActionResult> Update(Guid publicid, [FromBody] UpdateFoodDto dto)
+        {
+            var success = await _foodService.UpdateFoodAsync(publicid, dto);
+            if (!success) return NotFound(new { message = "Nem sikerült a módosítás. Lehet, hogy az étel nem létezik." });
+
+            return Ok(new { message = "Étel sikeresen frissítve!" });
         }
 
 
-        [HttpPatch("getupdate/{pubid}")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetUpdateFood(Guid pubid)
+        [HttpDelete("{publicid}")]
+        public async Task<IActionResult> Delete(Guid publicid)
         {
-            UpdateFoodDto food = await _fs.GetUpdateFoodAsnyc(pubid);
-            
-            if (food == null)
-            {
-                return NotFound("Nincs iylen étel");
-            }
-            return Ok(food);
+            var success = await _foodService.DeleteFoodAsync(publicid);
+            if (!success) return NotFound(new { message = "Az étel nem található, így nem törölhető." });
 
-        }
-
-        [HttpPatch("update/{pubid}")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> UpdateFood(Guid pubid, [FromBody] UpdateFoodDto ufood)
-        {
-            string result = await _fs.UpdateFoodAsnyc(pubid, ufood);
-
-            if (result == "Sikeres módosítás")
-            {
-                return Ok(result);
-            }
-            else if (result == "Nem található ilyen étel")
-            {
-                return NotFound(result);
-            }
-            else
-            {
-                return BadRequest(result);
-            }
-        }
-
-        [HttpDelete("delete/{pubid}")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> DeleteFood(Guid pubid)
-        {
-            string result = await _fs.DeleteFoodAsnyc(pubid);
-
-            if (result == "Sikeres törlés")
-            {
-                return Ok(result);
-            }
-            else if (result == "Nem található ilyen étel")
-            {
-                return NotFound(result);
-            }
-            else
-            {
-                return BadRequest(result);
-            }
+            return Ok(new { message = "Étel sikeresen törölve!" });
         }
     }
 }

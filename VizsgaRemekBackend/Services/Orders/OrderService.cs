@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using VizsgaRemekBackend.Controllers.Orders;
 using VizsgaRemekBackend.Data;
 using VizsgaRemekBackend.Dtos.OrdeeDtos;
+using VizsgaRemekBackend.Dtos.OrderDtos;
 using VizsgaRemekBackend.Models;
 
 namespace VizsgaRemekBackend.Services.Orders

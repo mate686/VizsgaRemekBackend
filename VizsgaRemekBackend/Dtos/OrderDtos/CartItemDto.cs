@@ -1,4 +1,4 @@
-﻿namespace VizsgaRemekBackend.Controllers.Orders
+﻿namespace VizsgaRemekBackend.Dtos.OrderDtos
 {
     public class CartItemDto
     {

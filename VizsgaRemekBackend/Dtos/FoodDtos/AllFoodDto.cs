@@ -11,7 +11,9 @@ namespace VizsgaRemekBackend.Dtos.FoodDtos
         public decimal Price { get; set; }
         public string Category { get; set; } = null!;
 
-        public ICollection<FoodImage> Images { get; set; } = new List<FoodImage>();
+        public List<string> ImageUrl { get; set; }
+
+        //public ICollection<FoodImage> Images { get; set; } = new List<FoodImage>();
 
     }
 }

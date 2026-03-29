@@ -7,16 +7,11 @@ namespace VizsgaRemekBackend.Services.FoodServices
 {
     public interface IFoodService
     {
-        public Task<List<AllFoodDto>> GetAllFoodAsync();
-
-        public Task<FoodBypubId?> GetFoodByIdAsnyc(Guid publicid);
-
-        public Task<string> CreateFoodAsnyc([FromBody] CreateFoodDto cfood);
-
-        public Task<string> UpdateFoodAsnyc(Guid publicid, [FromBody] UpdateFoodDto ufood);
-
-        public Task<string> DeleteFoodAsnyc(Guid publicid);
-
-        public Task<UpdateFoodDto> GetUpdateFoodAsnyc(Guid publicid);
+        Task<List<AllFoodDto>> GetAllFoodAsync();
+        Task<FoodBypubId?> GetFoodByIdAsync(Guid publicid);
+        Task<UpdateFoodDto?> GetUpdateFoodAsync(Guid publicid);
+        Task<bool> CreateFoodAsync(CreateFoodDto cfood);
+        Task<bool> UpdateFoodAsync(Guid publicid, UpdateFoodDto ufood);
+        Task<bool> DeleteFoodAsync(Guid publicid);
     }
 }

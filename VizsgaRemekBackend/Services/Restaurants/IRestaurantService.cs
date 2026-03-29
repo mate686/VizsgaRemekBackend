@@ -6,10 +6,10 @@ namespace VizsgaRemekBackend.Services.Restaurants
     public interface IRestaurantService
     {
         public Task<List<AllRestaurantDto>> GetAllRestaurantAsync();
-        public Task<GetRestaurantDto> GetRestaurantByIdAsnyc(Guid pubid);
+        public Task<GetRestaurantDto> GetRestaurantByIdAsync(Guid pubid);
         public Task<bool> CreateRestaurantAsync(CreateRestaurantDto dto);
-        public Task<string> DeleteRestaurantAsync(Guid pubid);
-        public Task<string> UpdateRestaurantAsync(Guid pubid, CreateRestaurantDto dto);
-        public Task<CreateRestaurantDto> GetUpdateRestaurantAsnyc(Guid pubid);
+        public Task<bool> DeleteRestaurantAsync(Guid pubid);
+        public Task<bool> UpdateRestaurantAsync(Guid pubid, CreateRestaurantDto dto);
+        public Task<CreateRestaurantDto> GetUpdateRestaurantAsync(Guid pubid);
     }
 }

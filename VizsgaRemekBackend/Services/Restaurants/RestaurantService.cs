@@ -11,7 +11,6 @@ namespace VizsgaRemekBackend.Services.Restaurants
 {
     public class RestaurantService : IRestaurantService
     {
-
         private readonly AppDbContext _conn;
 
         public RestaurantService(AppDbContext conn)
@@ -30,32 +29,31 @@ namespace VizsgaRemekBackend.Services.Restaurants
                 Category = dto.Category,
                 RestaurantImageUrl = dto.RestaurantImageUrl
             };
+
             _conn.Restaurants.Add(restaurant);
             await _conn.SaveChangesAsync();
 
             return true;
-
         }
 
-        public async Task<string> DeleteRestaurantAsync(Guid pubid)
+   
+        public async Task<bool> DeleteRestaurantAsync(Guid pubid)
         {
-            Restaurant? restaurant = _conn.Restaurants.FirstOrDefault(r => r.publicId == pubid);
+            var restaurant = await _conn.Restaurants.FirstOrDefaultAsync(r => r.publicId == pubid);
 
-            if (restaurant == null) {
-                return "Nem található ilyen étterem";
-            }
-            else
+            if (restaurant == null)
             {
-                _conn.Restaurants.Remove(restaurant);
-                await _conn.SaveChangesAsync();
-                return "Sikeres törlés";
+                return false; 
             }
 
+            _conn.Restaurants.Remove(restaurant);
+            await _conn.SaveChangesAsync();
+            return true;
         }
 
         public async Task<List<AllRestaurantDto>> GetAllRestaurantAsync()
         {
-            List<AllRestaurantDto> allr = await _conn.Restaurants.Select(r => new AllRestaurantDto
+            return await _conn.Restaurants.Select(r => new AllRestaurantDto
             {
                 publicId = r.publicId,
                 Name = r.Name,
@@ -65,11 +63,10 @@ namespace VizsgaRemekBackend.Services.Restaurants
                 Category = r.Category,
                 RestaurantImageUrl = r.RestaurantImageUrl
             }).ToListAsync();
-
-            return allr;
         }
 
-        public async Task<GetRestaurantDto?> GetRestaurantByIdAsnyc(Guid pubid)
+
+        public async Task<GetRestaurantDto?> GetRestaurantByIdAsync(Guid pubid)
         {
             return await _conn.Restaurants
                 .Where(r => r.publicId == pubid)
@@ -113,39 +110,43 @@ namespace VizsgaRemekBackend.Services.Restaurants
                 }).FirstOrDefaultAsync();
         }
 
-        public async Task<CreateRestaurantDto?> GetUpdateRestaurantAsnyc(Guid pubid)
+    
+        public async Task<CreateRestaurantDto?> GetUpdateRestaurantAsync(Guid pubid)
         {
-            return await _conn.Restaurants.Where(r => r.publicId == pubid).Select(r => new CreateRestaurantDto
-            {
-                Name = r.Name,
-                Address = r.Address,
-                Phone = r.Phone,
-                OpeningHours = r.OpeningHours,
-                Category = r.Category,
-                RestaurantImageUrl = r.RestaurantImageUrl
-            }).FirstOrDefaultAsync();
+            return await _conn.Restaurants
+                .Where(r => r.publicId == pubid)
+                .Select(r => new CreateRestaurantDto
+                {
+                    Name = r.Name,
+                    Address = r.Address,
+                    Phone = r.Phone,
+                    OpeningHours = r.OpeningHours,
+                    Category = r.Category,
+                    RestaurantImageUrl = r.RestaurantImageUrl
+                }).FirstOrDefaultAsync();
         }
 
-        public async Task<string> UpdateRestaurantAsync(Guid pubid, CreateRestaurantDto dto)
+
+        public async Task<bool> UpdateRestaurantAsync(Guid pubid, CreateRestaurantDto dto)
         {
-            Restaurant? restaurant = _conn.Restaurants.FirstOrDefault(r => r.publicId == pubid);
+            var restaurant = await _conn.Restaurants.FirstOrDefaultAsync(r => r.publicId == pubid);
 
             if (restaurant == null)
             {
-                return "Nem található ilyen étterem";
+                return false;
             }
-            else
-            {
-                restaurant.Name = dto.Name;
-                restaurant.Address = dto.Address;
-                restaurant.Phone = dto.Phone;
-                restaurant.OpeningHours = dto.OpeningHours;
-                restaurant.Category = dto.Category;
-                restaurant.RestaurantImageUrl = dto.RestaurantImageUrl;
-                _conn.Restaurants.Update(restaurant);
-                await _conn.SaveChangesAsync();
-                return "Sikeres módosítás";
-            }
+
+            restaurant.Name = dto.Name;
+            restaurant.Address = dto.Address;
+            restaurant.Phone = dto.Phone;
+            restaurant.OpeningHours = dto.OpeningHours;
+            restaurant.Category = dto.Category;
+            restaurant.RestaurantImageUrl = dto.RestaurantImageUrl;
+
+       
+
+            await _conn.SaveChangesAsync();
+            return true;
         }
     }
 }

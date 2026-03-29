@@ -1,4 +1,5 @@
-﻿using VizsgaRemekBackend.Dtos.OrdeeDtos;
+﻿using VizsgaRemekBackend.Controllers.Orders;
+using VizsgaRemekBackend.Dtos.OrdeeDtos;
 using VizsgaRemekBackend.Models;
 
 namespace VizsgaRemekBackend.Services.Orders
@@ -6,18 +7,24 @@ namespace VizsgaRemekBackend.Services.Orders
     public interface IOrderService
     {
 
-        public Task<List<Order>> GetAllOrdersAsync();
+        // Rendelés létrehozása vagy meglévő "pending" rendelés bővítése
+        Task<string> CreateOrderAsync(string userId, List<CartItemDto> items);
 
-        public Task<Order?> GetOrderByIdAsync(Guid publicid);
+        // Rendelés lekérése publicId alapján (tételekkel együtt)
+        Task<Order?> GetOrderByIdAsync(Guid publicId);
 
-        public Task<string> CreateOrderAsync(Guid pubid, List<OrderItemDTO> orderItems);
+        // Összes rendelés lekérése (például admin felületre)
+        Task<List<Order>> GetAllOrdersAsync();
 
-        public Task<bool> UpdateOrderAsync(Guid publicid, Order order);
+        // Státusz frissítése (pl: "Paid", "Shipped", "Completed", "Cancelled")
+        Task<bool> UpdateOrderStatusAsync(Guid publicId, string status);
 
-        public Task<bool> DeleteOrderAsync(Guid publicid);
+   
+        Task<bool> DeleteOrderAsync(Guid publicId);
 
-        public Task<bool> CompleteOrderAsync(Guid publicid);
+   
+        Task<bool> UpdateItemQuantityAsync(Guid orderPublicId, Guid foodPublicId, int newQuantity);
 
-        public Task<bool> MadeOrderPaid(Guid publicid);
+        Task<bool> RemoveItemFromOrderAsync(Guid orderPublicId, Guid foodPublicId);
     }
 }

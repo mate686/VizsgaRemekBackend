@@ -9,95 +9,84 @@ namespace VizsgaRemekBackend.Controllers.Orders
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
-    public class OrderController : ControllerBase
+    [Authorize] 
+    public class OrdersController : ControllerBase
     {
-        private readonly IOrderService _iod;
+        private readonly IOrderService _orderService;
 
-        public OrderController(IOrderService iod)
+        public OrdersController(IOrderService orderService)
         {
-            _iod = iod;
+            _orderService = orderService;
         }
 
-        [HttpGet("allorder")]
-        [Authorize(Roles = "User")]
-        public async Task<IActionResult> GetOrders()
+        private string GetUserId()
         {
-
-            return Ok(await _iod.GetAllOrdersAsync());
+            return User.FindFirstValue(ClaimTypes.NameIdentifier)!;
         }
 
-        [HttpGet("order/{pubid}")]
-        [Authorize(Roles = "User")]
-        public async Task<IActionResult> GetOrdersById(Guid pubid)
+        [HttpGet]
+        public async Task<IActionResult> GetAllOrders()
         {
-
-            Order sOrdr = await _iod.GetOrderByIdAsync(pubid);
-
-            return Ok(await _iod.GetOrderByIdAsync(pubid));
+            var orders = await _orderService.GetAllOrdersAsync();
+            return Ok(orders);
         }
 
-        [HttpPost("makeOrder")]
-        [Authorize(Roles = "User")]
-        public async Task<IActionResult> MakeOrder([FromBody] List<OrderItem> orderItems)
+        [HttpGet("{publicId}")]
+        public async Task<IActionResult> GetOrderById(Guid publicId)
         {
-            try
-            {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var order = await _orderService.GetOrderByIdAsync(publicId);
+            if (order == null) return NotFound(new { message = "Rendelés nem található." });
 
-                if (userId == null) return Unauthorized();
-                // Itt lehet hozzáadni az új rendelést az adatbázishoz
-                // Például: await _iod.CreateOrderAsync(order);
-                return Created();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"Hiba történt a rendelés létrehozásakor: {ex.Message}");
-            }
+            return Ok(order);
         }
 
-        [HttpPost("completeOrder")]
-         [Authorize(Roles = "Admin")]
-         public IActionResult SetCompleteOrder(Guid pubid)
-         {
-             if (_iod.CompleteOrderAsync(pubid).Result)
-             {
-                 return Ok("Sikeres rendelés teljesítése");
-             }
-             else
-             {
-                 return BadRequest("Sikertelen rendelés teljesítése");
-             }
-         }
-
-        [HttpPost("deleteOrder/{pubid}")]
-        [Authorize(Roles = "User")]
-        public async Task<IActionResult> DeleteOrder(Guid pubid)
+        [HttpPost]
+        public async Task<IActionResult> CreateOrder([FromBody] List<CartItemDto> items)
         {
+            var userId = GetUserId();
+            var resultMessage = await _orderService.CreateOrderAsync(userId, items);
 
-            if (await _iod.DeleteOrderAsync(pubid))
-            {
-                return Ok("Sikeres törlés");
-            }
-            else
-            {
-                return BadRequest("Sikertelen törlés");
-            }
+            if (resultMessage != "Sikeres")
+                return BadRequest(new { message = resultMessage });
 
+            return Ok(new { message = "A tételek sikeresen bekerültek a rendelésbe!" });
         }
 
-        [HttpPost("makeOrderPaid/{pubid}")]
-        [Authorize(Roles = "User")]
-        public IActionResult MakeOrderPaid(Guid pubId)
+        [HttpPatch("{publicId}/status")]
+        public async Task<IActionResult> UpdateOrderStatus(Guid publicId, [FromBody] string newStatus)
         {
-            if (_iod.MadeOrderPaid(pubId).Result)
-            {
-                return Ok("Sikeres fizetés");
-            }
-            else            {
-                return BadRequest("Sikertelen fizetés");
-            }
+            var success = await _orderService.UpdateOrderStatusAsync(publicId, newStatus);
+            if (!success) return NotFound(new { message = "Rendelés nem található." });
+
+            return Ok(new { message = $"Rendelés státusza frissítve erre: {newStatus}" });
         }
 
+
+        [HttpDelete("{publicId}")]
+        public async Task<IActionResult> DeleteOrder(Guid publicId)
+        {
+            var success = await _orderService.DeleteOrderAsync(publicId);
+            if (!success) return NotFound(new { message = "Rendelés nem található." });
+
+            return Ok(new { message = "Rendelés sikeresen törölve." });
+        }
+
+        [HttpPut("{orderPublicId}/items/{foodPublicId}")]
+        public async Task<IActionResult> UpdateItemQuantity(Guid orderPublicId, Guid foodPublicId, [FromQuery] int quantity)
+        {
+            var success = await _orderService.UpdateItemQuantityAsync(orderPublicId, foodPublicId, quantity);
+            if (!success) return BadRequest(new { message = "Nem sikerült módosítani a mennyiséget. (Lehet, hogy már nem 'pending' a rendelés)" });
+
+            return Ok(new { message = "Mennyiség frissítve, végösszeg újraszámolva." });
+        }
+
+        [HttpDelete("{orderPublicId}/items/{foodPublicId}")]
+        public async Task<IActionResult> RemoveItem(Guid orderPublicId, Guid foodPublicId)
+        {
+            var success = await _orderService.RemoveItemFromOrderAsync(orderPublicId, foodPublicId);
+            if (!success) return BadRequest(new { message = "Nem sikerült törölni a tételt." });
+
+            return Ok(new { message = "Tétel sikeresen eltávolítva." });
+        }
     }
 }

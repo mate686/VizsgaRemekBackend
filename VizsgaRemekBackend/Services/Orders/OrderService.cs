@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using VizsgaRemekBackend.Controllers.Orders;
 using VizsgaRemekBackend.Data;
 using VizsgaRemekBackend.Dtos.OrdeeDtos;
 using VizsgaRemekBackend.Models;
@@ -14,122 +15,143 @@ namespace VizsgaRemekBackend.Services.Orders
             _conn = conn;
         }
 
-        public async Task<bool> CompleteOrderAsync(Guid publicid)
+        private async Task RecalculateTotalAsync(Order order)
         {
-            if (_conn.Orders.FirstOrDefault(x => x.publicId == publicid) != null)
-            {
-                _conn.Orders.FirstOrDefault(x => x.publicId == publicid).Status = "Completed";
-                await _conn.SaveChangesAsync();
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            var items = await _conn.OrderItems
+                .Include(oi => oi.Food)
+                .Where(oi => oi.OrderId == order.Id)
+                .ToListAsync();
+
+            order.TotalPrice = items.Sum(oi => oi.Quantity * oi.Food.Price);
+            order.UpdatedAt = DateTime.UtcNow;
+            await _conn.SaveChangesAsync();
         }
 
-        public async Task<string> CreateOrderAsync(Guid pubid, List<OrderItemDTO> orderItems)
+      
+        public async Task<bool> UpdateOrderStatusAsync(Guid publicid, string newStatus)
         {
-           User user = await _conn.Users.FirstOrDefaultAsync(x => Guid.Parse(x.Id) == pubid);
+            var order = await _conn.Orders.FirstOrDefaultAsync(x => x.publicId == publicid);
+            if (order == null) return false;
 
-           Order orders = user.Orders.FirstOrDefault(x => x.Status == "pending");
+            order.Status = newStatus;
+            order.UpdatedAt = DateTime.UtcNow;
 
-            if (orders == null)
+            await _conn.SaveChangesAsync();
+            return true;
+        }
+
+       
+        public async Task<bool> DeleteOrderAsync(Guid publicid)
+        {
+            var order = await _conn.Orders.FirstOrDefaultAsync(x => x.publicId == publicid);
+            if (order == null) return false;
+
+            _conn.Orders.Remove(order);
+            await _conn.SaveChangesAsync();
+            return true;
+        }
+
+       
+        public async Task<List<Order>> GetAllOrdersAsync() => await _conn.Orders.ToListAsync();
+
+        public async Task<Order?> GetOrderByIdAsync(Guid publicid) =>
+            await _conn.Orders
+                .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.Food) 
+                .FirstOrDefaultAsync(x => x.publicId == publicid);
+
+        // 4. Rendelés létrehozása (CartItemDto alapján, Identity UserId-val)
+        public async Task<string> CreateOrderAsync(string userId, List<CartItemDto> items)
+        {
+            if (items == null || !items.Any()) return "A kosár üres.";
+
+            var order = await _conn.Orders
+                .Include(o => o.OrderItems)
+                .FirstOrDefaultAsync(o => o.UserId == userId && o.Status == "pending");
+
+            if (order == null)
             {
-                orders = new Order
+                order = new Order
                 {
+                    UserId = userId,
                     Status = "pending",
                     TotalPrice = 0,
-                    User = user,
                     OrderItems = new List<OrderItem>()
                 };
-
-                foreach (var item in orders.OrderItems)
-                {
-                    OrderItem oi = new OrderItem
-                    {
-                        FoodId = item.FoodId,
-                        Quantity = item.Quantity,
-                        Food = item.Food,
-                        OrderId = orders.Id,
-                        Order = orders
-                    };
-
-
-                    orders.OrderItems.Add(oi);
-                }
-
-                _conn.Orders.Update(orders);
-                await _conn.SaveChangesAsync();
-
+                _conn.Orders.Add(order);
+                await _conn.SaveChangesAsync(); 
             }
-            else
+
+            foreach (var itemDto in items)
             {
-                foreach (var item in orders.OrderItems)
+                var food = await _conn.Foods.FirstOrDefaultAsync(f => f.publicId == itemDto.FoodPublicId);
+                if (food == null) continue;
+
+                var existingItem = order.OrderItems.FirstOrDefault(oi => oi.FoodId == food.Id);
+                if (existingItem != null)
                 {
-                    OrderItem oi = new OrderItem
-                    {
-                        FoodId = item.FoodId,
-                        Quantity = item.Quantity,
-                        Food = item.Food,
-                        OrderId = orders.Id,
-                        Order = orders
-                    };
-
-                    
-                    orders.OrderItems.Add(oi);
+                    existingItem.Quantity += itemDto.Quantity;
                 }
-
-                _conn.Orders.Update(orders);
-                await _conn.SaveChangesAsync();
-
-
+                else
+                {
+                    _conn.OrderItems.Add(new OrderItem
+                    {
+                        OrderId = order.Id,
+                        FoodId = food.Id,
+                        Quantity = itemDto.Quantity,
+                        RestaurantId = food.RestaurantId
+                    });
+                }
             }
 
-            //Food food = await _conn.Foods.FirstOrDefaultAsync(x => x.publicId == fId);
-
+            await _conn.SaveChangesAsync();
+            await RecalculateTotalAsync(order); 
             return "Sikeres";
         }
 
-        public async Task<bool> DeleteOrderAsync(Guid publicid)
+      
+        public async Task<bool> UpdateItemQuantityAsync(Guid orderPublicId, Guid foodPublicId, int newQuantity)
         {
-
-            try
+            if (newQuantity <= 0)
             {
-                _conn.Orders.Remove(_conn.Orders.FirstOrDefault(x => x.publicId == publicid));
-
-                await _conn.SaveChangesAsync();
-
-                return true;
+                return await RemoveItemFromOrderAsync(orderPublicId, foodPublicId);
             }
-            catch (Exception ex)
-            {
-                return false;
-            }
+
+            var order = await _conn.Orders.FirstOrDefaultAsync(o => o.publicId == orderPublicId);
+            var food = await _conn.Foods.FirstOrDefaultAsync(f => f.publicId == foodPublicId);
+
+            if (order == null || food == null || order.Status != "pending") return false;
+
+            var orderItem = await _conn.OrderItems
+                .FirstOrDefaultAsync(oi => oi.OrderId == order.Id && oi.FoodId == food.Id);
+
+            if (orderItem == null) return false;
+
+            orderItem.Quantity = newQuantity;
+            orderItem.UpdatedAt = DateTime.UtcNow;
+
+            await _conn.SaveChangesAsync();
+            await RecalculateTotalAsync(order);
+            return true;
         }
 
-        public async Task<List<Order>> GetAllOrdersAsync()
+    
+        public async Task<bool> RemoveItemFromOrderAsync(Guid orderPublicId, Guid foodPublicId)
         {
-            return await _conn.Orders.ToListAsync();
-        }
+            var order = await _conn.Orders.FirstOrDefaultAsync(o => o.publicId == orderPublicId);
+            var food = await _conn.Foods.FirstOrDefaultAsync(f => f.publicId == foodPublicId);
 
-        public async Task<Order?> GetOrderByIdAsync(Guid publicid)
-        {
-            return await _conn.Orders.FirstOrDefaultAsync(x => x.publicId == publicid);
-        }
+            if (order == null || food == null || order.Status != "pending") return false;
 
+            var orderItem = await _conn.OrderItems
+                .FirstOrDefaultAsync(oi => oi.OrderId == order.Id && oi.FoodId == food.Id);
 
-        public Task<bool> MadeOrderPaid(Guid publicid)
-        {
-            _conn.Orders.FirstOrDefault(x => x.publicId == publicid).Status = "Paid";
+            if (orderItem == null) return false;
 
-            return Task.FromResult(true);
-        }
-
-
-        public Task<bool> UpdateOrderAsync(Guid publicid, Order order)
-        {
-            throw new NotImplementedException();
+            _conn.OrderItems.Remove(orderItem);
+            await _conn.SaveChangesAsync();
+            await RecalculateTotalAsync(order);
+            return true;
         }
     }
 }

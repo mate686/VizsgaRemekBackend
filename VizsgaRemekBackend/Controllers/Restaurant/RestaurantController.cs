@@ -30,7 +30,7 @@ namespace VizsgaRemekBackend.Controllers.Restaurant
         [AllowAnonymous]
         public async Task<IActionResult> GetRestaurantById(Guid pubid)
         {
-            GetRestaurantDto restaurant = await _irs.GetRestaurantByIdAsnyc(pubid);
+            GetRestaurantDto restaurant = await _irs.GetRestaurantByIdAsync(pubid);
             if (restaurant == null)
             {
                 return NotFound("Nincs iylen étterem");
@@ -54,12 +54,12 @@ namespace VizsgaRemekBackend.Controllers.Restaurant
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteRestaurant(Guid pubid)
         {
-            string result = await _irs.DeleteRestaurantAsync(pubid);
-            if (result == "Sikeres törlés")
+            bool result = await _irs.DeleteRestaurantAsync(pubid);
+            if (result)
             {
                 return Ok(result);
             }
-            else if (result == "Nem található ilyen étterem")
+            else if (!result)
             {
                 return NotFound(result);
             }
@@ -73,7 +73,7 @@ namespace VizsgaRemekBackend.Controllers.Restaurant
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetUpdateRestaurant(Guid pubid)
         {
-            CreateRestaurantDto restaurant = await _irs.GetUpdateRestaurantAsnyc(pubid);
+            CreateRestaurantDto restaurant = await _irs.GetUpdateRestaurantAsync(pubid);
             if (restaurant == null)
             {
                 return NotFound("Nincs iylen étterem");
@@ -86,12 +86,12 @@ namespace VizsgaRemekBackend.Controllers.Restaurant
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateRestaurant(Guid pubid, [FromBody] CreateRestaurantDto dto)
         {
-            string result = await _irs.UpdateRestaurantAsync(pubid, dto);
-            if (result == "Sikeres módosítás")
+            bool result = await _irs.UpdateRestaurantAsync(pubid, dto);
+            if (result)
             {
                 return Ok(result);
             }
-            else if (result == "Nem található ilyen étterem")
+            else if (!result)
             {
                 return NotFound(result);
             }

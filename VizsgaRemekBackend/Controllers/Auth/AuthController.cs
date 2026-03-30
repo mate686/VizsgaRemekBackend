@@ -7,6 +7,7 @@ using VizsgaRemekBackend.Dtos;
 using VizsgaRemekBackend.Dtos.AuthDtos;
 using VizsgaRemekBackend.Models;
 using VizsgaRemekBackend.Services.Auth;
+using VizsgaRemekBackend.Services.Emails;
 
 namespace VizsgaRemekBackend.Controllers.Auth
 {
@@ -16,10 +17,14 @@ namespace VizsgaRemekBackend.Controllers.Auth
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _ats;
+        private readonly IEmailService _ems;
+        private readonly UserManager<User> _userManager;
 
-        public AuthController(IAuthService ats)
+        public AuthController(IAuthService ats,IEmailService ems, UserManager<User> userManager)
         {
             _ats = ats;
+            _ems = ems;
+            _userManager = userManager;
         }
 
         [HttpPost("register")]
@@ -69,6 +74,54 @@ namespace VizsgaRemekBackend.Controllers.Auth
             {
                 return Ok(new {token});
             }
+        }
+
+        [HttpPost("forgot-password")]
+        [AllowAnonymous]
+        public async Task<string> ForgotPasswordAsync(ForgotPasswordDto dto)
+        {
+            var user = await _userManager.FindByEmailAsync(dto.Email);
+            if (user == null) return "Ha létezik ez az e-mail cím a rendszerben, elküldtük a visszaállítási linket.";
+
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var encodedToken = Uri.EscapeDataString(token);
+
+
+            var resetLink = $"http://localhost:3000/reset-password?email={user.Email}&token={encodedToken}";
+
+
+            var emailBody = $@"
+            <h2>Jelszó visszaállítása</h2>
+            <p>Kedves {user.UserName}!</p>
+            <p>Kaptunk egy kérést a jelszavad visszaállítására. Kattints az alábbi linkre az új jelszó megadásához:</p>
+            <p><a href='{resetLink}' style='padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;'>Jelszó visszaállítása</a></p>
+            <p>Ha nem te kérted a visszaállítást, kérjük, hagyd figyelmen kívül ezt az üzenetet.</p>
+            <br>
+            <p>Üdvözlettel,<br>A VizsgaRemek Csapata</p>";
+
+  
+            await _ems.SendEmailAsync(user.Email, "Jelszó visszaállítása - VizsgaRemek", emailBody);
+
+            return "Ha létezik ez az e-mail cím a rendszerben, elküldtük a visszaállítási linket.";
+        }
+
+
+        [HttpPost("reset-password")]
+        [AllowAnonymous] 
+        public async Task<IActionResult> ResetPasswordAsync([FromBody] ResetPasswordDto dto)
+        {
+            var user = await _userManager.FindByEmailAsync(dto.Email);
+            if (user == null) return BadRequest("Hiba történt a jelszó visszaállítása során.");
+
+  
+            var result = await _userManager.ResetPasswordAsync(user, dto.Token, dto.NewPassword);
+
+            if (result.Succeeded)
+            {
+                return Ok(new { message = "A jelszavad sikeresen megváltozott!" });
+            }
+
+            return BadRequest(new { errors = result.Errors });
         }
 
         //Kijelentkezés reactban történik a token törlése a localstorage-ból

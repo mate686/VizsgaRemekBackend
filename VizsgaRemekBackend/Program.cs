@@ -2,16 +2,17 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using System.Text;
 using VizsgaRemekBackend.Data;
 using VizsgaRemekBackend.Models;
-using Microsoft.OpenApi.Models;
-using VizsgaRemekBackend.Services.FoodServices;
 using VizsgaRemekBackend.Services.Auth;
-using VizsgaRemekBackend.Services.Orders;
+using VizsgaRemekBackend.Services.Emails;
 using VizsgaRemekBackend.Services.Favorites;
-using VizsgaRemekBackend.Services.Reviews;
+using VizsgaRemekBackend.Services.FoodServices;
+using VizsgaRemekBackend.Services.Orders;
 using VizsgaRemekBackend.Services.Restaurants;
+using VizsgaRemekBackend.Services.Reviews;
 
 
 namespace VizsgaRemekBackend
@@ -32,6 +33,7 @@ namespace VizsgaRemekBackend
             builder.Services.AddScoped<IFavoriteService, FavoriteService>();
             builder.Services.AddScoped<IReviewsService, ReviewService>();
             builder.Services.AddScoped<IRestaurantService, RestaurantService>();
+            builder.Services.AddScoped<IEmailService, EmailService>();
 
             builder.Services.AddControllers();
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi

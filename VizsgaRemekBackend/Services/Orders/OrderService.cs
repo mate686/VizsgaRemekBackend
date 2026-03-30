@@ -153,5 +153,41 @@ namespace VizsgaRemekBackend.Services.Orders
             await RecalculateTotalAsync(order);
             return true;
         }
+
+        public async Task<string> CheckoutOrderAsync(Guid orderPublicId, string userId, int pointsToUse)
+        {
+
+            var order = await _conn.Orders.FirstOrDefaultAsync(o => o.publicId == orderPublicId && o.UserId == userId);
+            if (order == null) return "Rendelés nem található, vagy nem a te rendelésed.";
+
+            if (order.Status != "pending") return "Ezt a rendelést már véglegesítették.";
+
+   
+            var user = await _conn.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null) return "Felhasználó nem található.";
+
+
+            if (pointsToUse < 0) return "A felhasználandó pontok száma nem lehet negatív.";
+            if (user.Points < pointsToUse) return "Nincs elég pontod ehhez a kedvezményhez.";
+
+     
+            if (order.TotalPrice < pointsToUse) return "Több pontot próbálsz beváltani, mint a rendelés végösszege.";
+
+            user.Points -= pointsToUse;
+            var finalPrice = order.TotalPrice - pointsToUse;
+            order.TotalPrice = finalPrice;
+
+  
+            int earnedPoints = (int)(finalPrice * 0.1m); 
+            user.Points += earnedPoints;
+
+ 
+            order.Status = "Paid";
+            order.UpdatedAt = DateTime.UtcNow;
+
+            await _conn.SaveChangesAsync();
+
+            return $"Sikeres fizetés! Levonva: {pointsToUse} pont. Új egyenleged: {user.Points} pont (Kaptál {earnedPoints} új pontot).";
+        }
     }
 }

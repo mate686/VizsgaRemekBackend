@@ -17,8 +17,7 @@ namespace VizsgaRemekBackend.Services.Reviews
 
         public async Task<string> CreateReviewAsync(CreateReviewDto dto, string userId)
         {
-            try
-            {
+
                 Review newR = new Review
                 {
                     RestaurantId = dto.RestaurantId,
@@ -33,18 +32,12 @@ namespace VizsgaRemekBackend.Services.Reviews
                 await _conn.SaveChangesAsync();
 
                 return "Sikeres értékelés létrehozás";
-            }
-            catch (Exception ex)
-            {
-                return "Hiba történt";
+            
 
-            }
         }
 
         public async Task<string> DeleteReviewAsync(Guid pubid)
         {
-            try
-            {
                 Review? r = await _conn.Reviews.FirstOrDefaultAsync(x => x.PublicId == pubid);
 
                 if (r == null)
@@ -58,11 +51,7 @@ namespace VizsgaRemekBackend.Services.Reviews
                 await _conn.SaveChangesAsync();
 
                 return "Sikeres törlés";
-            }
-            catch (Exception ex)
-            {
-                return "Hiba történt";
-            }
+                
         }
 
         public async Task<List<OutReviewDto>> GetAllReviewsAsync(string userId)
@@ -91,10 +80,9 @@ namespace VizsgaRemekBackend.Services.Reviews
             return review;
         }
 
-        public async Task<string> UpdateReviewAsync(string userpubid, UpdateReviewDto dto)
+        /*public async Task<string> UpdateReviewAsync(string userpubid, UpdateReviewDto dto)
         {
-            try
-            {
+            
                 Review? r = await _conn.Reviews.FirstOrDefaultAsync(x => x.PublicId.ToString() == userpubid && x.UserId == userpubid);
                 if (r == null) {
                     return "Nincs ilyen értékelés";
@@ -107,11 +95,21 @@ namespace VizsgaRemekBackend.Services.Reviews
                 await _conn.SaveChangesAsync();
 
                 return "Sikeres értékelés frissítés";
-            }
-            catch (Exception ex)
-            {
-                return "Hiba történt";
-            }
+            
+        }*/
+
+        public async Task<bool> UpdateReviewAsync(string userId, UpdateReviewDto dto)
+        {
+
+            var review = await _conn.Reviews.FirstOrDefaultAsync(x => x.PublicId == dto.PublicId && x.UserId == userId);
+
+            if (review == null) return false;
+
+            review.Rating = dto.Rating;
+            review.Comment = dto.Comment;
+            review.UpdatedAt = DateTime.UtcNow;
+
+            return await _conn.SaveChangesAsync() > 0;
         }
     }
 }

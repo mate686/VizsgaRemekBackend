@@ -91,18 +91,14 @@ namespace VizsgaRemekBackend.Controllers.Review
         public async Task<IActionResult> UpdateReview([FromBody] UpdateReviewDto dto)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            string result = await _irs.UpdateReviewAsync(userId, dto);
-            if (result == "Sikeres értékelés frissítés")
+            bool result = await _irs.UpdateReviewAsync(userId, dto);
+            if (result)
             {
-                return Ok(result);
+                return Ok();
             }
-            else if (result == "Nem található ilyen értékelés")
+            else 
             {
-                return NotFound(result);
-            }
-            else
-            {
-                return BadRequest(result);
+                return NotFound();
             }
         }
     }

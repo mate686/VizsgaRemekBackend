@@ -31,7 +31,10 @@ namespace VizsgaRemekBackend.Services.Restaurants
             };
 
             _conn.Restaurants.Add(restaurant);
-            await _conn.SaveChangesAsync();
+            if(!(await _conn.SaveChangesAsync() > 0))
+            {
+                return false;
+            }
 
             return true;
         }

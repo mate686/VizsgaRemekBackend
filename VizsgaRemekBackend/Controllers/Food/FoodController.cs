@@ -41,6 +41,7 @@ namespace VizsgaRemekBackend.Controllers.Food
 
    
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create([FromBody] CreateFoodDto dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -52,6 +53,7 @@ namespace VizsgaRemekBackend.Controllers.Food
         }
 
         [HttpPut("{publicid}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update(Guid publicid, [FromBody] UpdateFoodDto dto)
         {
             var success = await _foodService.UpdateFoodAsync(publicid, dto);
@@ -62,6 +64,7 @@ namespace VizsgaRemekBackend.Controllers.Food
 
 
         [HttpDelete("{publicid}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(Guid publicid)
         {
             var success = await _foodService.DeleteFoodAsync(publicid);

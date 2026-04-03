@@ -44,10 +44,12 @@ namespace VizsgaRemekBackend.Controllers.Restaurant
         {
             if (await _irs.CreateRestaurantAsync(dto))
             {
-                return BadRequest("Nem sikerült létrehozni az éttermet");
+        
+                return Ok("Sikeres létrehozás");
             }
+            return BadRequest("Nem sikerült létrehozni az éttermet");
 
-            return Ok("Sikeres létrehozás");
+
         }
 
         [HttpDelete("deleteRestaurant/{pubid}")]
@@ -69,7 +71,7 @@ namespace VizsgaRemekBackend.Controllers.Restaurant
             }
         }
 
-        [HttpPatch("getupdateRestaurant/{pubid}")]
+        [HttpGet("getupdateRestaurant/{pubid}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetUpdateRestaurant(Guid pubid)
         {

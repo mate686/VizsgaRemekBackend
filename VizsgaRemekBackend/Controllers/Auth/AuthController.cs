@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
@@ -19,12 +20,14 @@ namespace VizsgaRemekBackend.Controllers.Auth
         private readonly IAuthService _ats;
         private readonly IEmailService _ems;
         private readonly UserManager<User> _userManager;
+        private readonly IConfiguration _config;
 
-        public AuthController(IAuthService ats,IEmailService ems, UserManager<User> userManager)
+        public AuthController(IAuthService ats,IEmailService ems, UserManager<User> userManager, IConfiguration config)
         {
             _ats = ats;
             _ems = ems;
             _userManager = userManager;
+            _config = config;
         }
 
         [HttpPost("register")]
@@ -78,16 +81,17 @@ namespace VizsgaRemekBackend.Controllers.Auth
 
         [HttpPost("forgot-password")]
         [AllowAnonymous]
-        public async Task<string> ForgotPasswordAsync(ForgotPasswordDto dto)
+        public async Task<IActionResult> ForgotPasswordAsync([FromBody] ForgotPasswordDto dto)
         {
             var user = await _userManager.FindByEmailAsync(dto.Email);
-            if (user == null) return "Ha létezik ez az e-mail cím a rendszerben, elküldtük a visszaállítási linket.";
+            if (user == null) return Ok("Ha létezik ez az e-mail cím a rendszerben, elküldtük a visszaállítási linket.");
 
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
             var encodedToken = Uri.EscapeDataString(token);
 
+            var frontendUrl = _config["FrontendUrl"];
 
-            var resetLink = $"http://localhost:3000/reset-password?email={user.Email}&token={encodedToken}";
+            var resetLink = $"{frontendUrl}/reset-password?email={user.Email}&token={encodedToken}";
 
 
             var emailBody = $@"
@@ -102,7 +106,7 @@ namespace VizsgaRemekBackend.Controllers.Auth
   
             await _ems.SendEmailAsync(user.Email, "Jelszó visszaállítása - VizsgaRemek", emailBody);
 
-            return "Ha létezik ez az e-mail cím a rendszerben, elküldtük a visszaállítási linket.";
+            return Ok("Ha létezik ez az e-mail cím a rendszerben, elküldtük a visszaállítási linket.");
         }
 
 

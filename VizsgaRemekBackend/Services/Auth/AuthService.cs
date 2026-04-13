@@ -109,6 +109,63 @@ namespace VizsgaRemekBackend.Services.Auth
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
+
+        public async Task<ProfileDto?> GetProfileAsync(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return null;
+
+            return new ProfileDto
+            {
+                Username = user.UserName,
+                Name = user.Name,
+                Email = user.Email,
+                Phone = user.PhoneNumber
+            };
+        }
+
+        public async Task<(ProfileDto? profile, string? error)> UpdateProfileAsync(string userId, UpdateProfileDto dto)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return (null, "Felhasználó nem található.");
+
+            if (!string.IsNullOrEmpty(dto.Username) && dto.Username != user.UserName)
+                user.UserName = dto.Username;
+
+            if (!string.IsNullOrEmpty(dto.Name) && dto.Name != user.Name)
+                user.Name = dto.Name;
+
+            if (!string.IsNullOrEmpty(dto.Email) && dto.Email != user.Email)
+                user.Email = dto.Email;
+
+            if (!string.IsNullOrEmpty(dto.Phone) && dto.Phone != user.PhoneNumber)
+                user.PhoneNumber = dto.Phone;
+
+            user.UpdatedAt = DateTime.UtcNow;
+
+            if (!string.IsNullOrEmpty(dto.NewPassword))
+            {
+                if (string.IsNullOrEmpty(dto.CurrentPassword))
+                    return (null, "A jelenlegi jelszó megadása kötelező az új jelszóhoz.");
+
+                var pwResult = await _userManager.ChangePasswordAsync(user, dto.CurrentPassword, dto.NewPassword);
+                if (!pwResult.Succeeded)
+                    return (null, string.Join(", ", pwResult.Errors.Select(e => e.Description)));
+            }
+
+            var result = await _userManager.UpdateAsync(user);
+            if (!result.Succeeded)
+                return (null, string.Join(", ", result.Errors.Select(e => e.Description)));
+
+            return (new ProfileDto
+            {
+                Username = user.UserName,
+                Name = user.Name,
+                Email = user.Email,
+                Phone = user.PhoneNumber
+            }, null);
+        }
+
         //Logout token elmentése egy listaba amibe a kijeltkezetteket tároljuk, (Kijelentkezés és a jwt törlése reactban történik )
         /*
         private static HashSet<string> _revokedTokens = new();

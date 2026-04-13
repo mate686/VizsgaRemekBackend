@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using VizsgaRemekBackend.Dtos;
 using VizsgaRemekBackend.Dtos.AuthDtos;
 using VizsgaRemekBackend.Models;
@@ -28,6 +30,7 @@ namespace VizsgaRemekBackend.Controllers.Auth
             _ems = ems;
             _userManager = userManager;
             _config = config;
+        
         }
 
         [HttpPost("register")]
@@ -126,6 +129,30 @@ namespace VizsgaRemekBackend.Controllers.Auth
             }
 
             return BadRequest(new { errors = result.Errors });
+        }
+
+        [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> GetProfile()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var profile = await _ats.GetProfileAsync(userId!);
+            if (profile == null) return NotFound("Felhasználó nem található.");
+
+            return Ok(profile);
+        }
+
+        [Authorize]
+        [HttpPut]
+        public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileDto dto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var (profile, error) = await _ats.UpdateProfileAsync(userId!, dto);
+            if (error != null) return BadRequest(error);
+
+            return Ok(profile);
         }
 
         //Kijelentkezés reactban történik a token törlése a localstorage-ból

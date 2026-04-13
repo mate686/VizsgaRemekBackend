@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using VizsgaRemekBackend.Data;
+using VizsgaRemekBackend.DdSeeders;
 using VizsgaRemekBackend.Models;
 using VizsgaRemekBackend.Services.Auth;
 using VizsgaRemekBackend.Services.Emails;
@@ -160,6 +161,11 @@ namespace VizsgaRemekBackend
             builder.Services.AddAuthorization();
 
             var app = builder.Build();
+
+            using (var scope = app.Services.CreateScope())
+            {
+                await UserSeeder.SeedAsync(scope.ServiceProvider);
+            }
 
             app.UseCors("AllowFrontend");
             app.UseAuthentication();

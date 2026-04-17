@@ -80,9 +80,9 @@ namespace VizsgaRemekBackend.Services.Auth
            
             var claims = new List<Claim>
             {
-            new Claim(JwtRegisteredClaimNames.Sub, user.Id),
+            new Claim(ClaimTypes.NameIdentifier, user.Id),
             new Claim(ClaimTypes.Name, user.UserName!),
-            new Claim(JwtRegisteredClaimNames.Email, user.Email),
+            new Claim(ClaimTypes.Email, user.Email),
             };
 
             var userRoles = await _userManager.GetRolesAsync(user);
@@ -99,10 +99,10 @@ namespace VizsgaRemekBackend.Services.Auth
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
-                issuer: _config["Jwt:VizsgaRemekBackend"],
-                audience: _config["Jwt:VizsgaRemekFrontend"],
+                issuer: _config["Jwt:Issuer"],
+                audience: _config["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.Now.AddHours(2),
+                expires: DateTime.UtcNow.AddHours(2),
                 signingCredentials: creds
             );
 

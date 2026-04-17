@@ -100,9 +100,9 @@ namespace VizsgaRemekBackend
 
                     ValidateIssuerSigningKey = true,
 
-                    ValidIssuer = builder.Configuration["Jwt:VizsgaRemekBackend"],
+                    ValidIssuer = builder.Configuration["Jwt:Issuer"],
 
-                    ValidAudience = builder.Configuration["Jwt:VizsgaRemekFrontend"],
+                    ValidAudience = builder.Configuration["Jwt:Audience"],
 
                     IssuerSigningKey = new SymmetricSecurityKey(
 
@@ -167,10 +167,6 @@ namespace VizsgaRemekBackend
                 await UserSeeder.SeedAsync(scope.ServiceProvider);
             }
 
-            app.UseCors("AllowFrontend");
-            app.UseAuthentication();
-            app.UseAuthorization();
-
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
@@ -180,7 +176,9 @@ namespace VizsgaRemekBackend
 
             app.UseHttpsRedirection();
 
-        
+            app.UseCors("AllowFrontend");
+            app.UseAuthentication();
+            app.UseAuthorization();
 
 
             app.MapControllers();

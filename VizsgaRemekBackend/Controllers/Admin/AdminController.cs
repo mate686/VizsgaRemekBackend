@@ -59,7 +59,7 @@ namespace VizsgaRemekBackend.Controllers.Admin
                 .Include(r => r.Restaurant)
                 .Select(r => new
                 {
-                    r.PublicId,
+                    //r.PublicId,
                     RestaurantName = r.Restaurant.Name,
                     UserName = r.User.UserName,
                     r.Rating,

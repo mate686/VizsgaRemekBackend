@@ -25,7 +25,6 @@ namespace VizsgaRemekBackend.Controllers.Admin
         }
 
         // GET /api/admin/users
-        // Visszaadja az összes felhasználót szerepkörrel együtt
         [HttpGet("users")]
         public async Task<IActionResult> GetAllUsers()
         {
@@ -50,7 +49,6 @@ namespace VizsgaRemekBackend.Controllers.Admin
         }
 
         // GET /api/admin/reviews
-        // Visszaadja az összes értékelést étterem névvel és felhasználónévvel
         [HttpGet("reviews")]
         public async Task<IActionResult> GetAllReviews()
         {
@@ -72,7 +70,6 @@ namespace VizsgaRemekBackend.Controllers.Admin
         }
 
         // GET /api/admin/stats
-        // Összesített statisztikák egy hívásban (opcionális, gyorsabb dashboard töltés)
         [HttpGet("stats")]
         public async Task<IActionResult> GetStats()
         {
@@ -80,12 +77,15 @@ namespace VizsgaRemekBackend.Controllers.Admin
             var orderCount = await _conn.Orders.CountAsync();
             var userCount = await _userManager.Users.CountAsync();
 
-            var totalRevenue = await _conn.Orders
-                .Where(o => o.Status == "Paid")
-                .SumAsync(o => (decimal?)o.TotalPrice) ?? 0;
+            var pendingOrders = await _conn.Orders.CountAsync(o => o.Status.ToLower() == "pending");
+            var paidOrders = await _conn.Orders.CountAsync(o => o.Status.ToLower() == "paid");
+            var completedOrders = await _conn.Orders.CountAsync(o => o.Status.ToLower() == "completed");
 
-            var pendingOrders = await _conn.Orders.CountAsync(o => o.Status == "pending");
-            var paidOrders = await _conn.Orders.CountAsync(o => o.Status == "Paid");
+            var successfulOrders = paidOrders + completedOrders;
+
+            var totalRevenue = await _conn.Orders
+                .Where(o => o.Status.ToLower() == "paid" || o.Status.ToLower() == "completed")
+                .SumAsync(o => (decimal?)o.TotalPrice) ?? 0;
 
             var topUsers = await _conn.Users
                 .OrderByDescending(u => u.Points)
@@ -103,6 +103,33 @@ namespace VizsgaRemekBackend.Controllers.Admin
                 .Select(g => new { Rating = g.Key, Count = g.Count() })
                 .ToListAsync();
 
+            var restaurantRevenue = await _conn.OrderItems
+                .Include(oi => oi.Order)
+                .Include(oi => oi.Restaurant)
+                .Include(oi => oi.Food)
+                .Where(oi => oi.Order.Status.ToLower() == "paid" || oi.Order.Status.ToLower() == "completed")
+                .GroupBy(oi => oi.Restaurant.Name)
+                .Select(g => new
+                {
+                    RestaurantName = g.Key,
+                    Revenue = g.Sum(x => x.Quantity * x.Food.Price)
+                })
+                .OrderByDescending(x => x.Revenue)
+                .Take(5)
+                .ToListAsync();
+
+            var restaurantOrderCounts = await _conn.OrderItems
+                .Include(oi => oi.Restaurant)
+                .GroupBy(oi => oi.Restaurant.Name)
+                .Select(g => new
+                {
+                    RestaurantName = g.Key,
+                    OrderCount = g.Select(x => x.OrderId).Distinct().Count()
+                })
+                .OrderByDescending(x => x.OrderCount)
+                .Take(5)
+                .ToListAsync();
+
             return Ok(new
             {
                 restaurantCount,
@@ -111,9 +138,13 @@ namespace VizsgaRemekBackend.Controllers.Admin
                 totalRevenue,
                 pendingOrders,
                 paidOrders,
+                completedOrders,
+                successfulOrders,
                 topUsers,
                 foodsByCategory,
-                ratingDistribution
+                ratingDistribution,
+                restaurantRevenue,
+                restaurantOrderCounts
             });
         }
     }

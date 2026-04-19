@@ -396,7 +396,7 @@ namespace VizsgaRemekBackend.DdSeeders
             };
 
             await context.Reviews.AddRangeAsync(reviews);
-            //await context.SaveChangesAsync();
+            await context.SaveChangesAsync();
         }
 
 
@@ -421,7 +421,7 @@ namespace VizsgaRemekBackend.DdSeeders
             };
 
             await context.Favorites.AddRangeAsync(favorites);
-            //await context.SaveChangesAsync();
+            await context.SaveChangesAsync();
         }
     }
 }

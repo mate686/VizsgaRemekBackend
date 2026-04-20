@@ -33,7 +33,7 @@ namespace VizsgaRemekBackend.Services.Auth
                 UserName = dto.Username,
                 Email = dto.Email,
                 Name = dto.Name,
-                Points = dto.Points,
+                Points = 0,
                 PhoneNumber = dto.PhoneNumber,
             };
 

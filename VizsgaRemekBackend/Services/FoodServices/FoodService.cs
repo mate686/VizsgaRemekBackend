@@ -15,18 +15,23 @@ namespace VizsgaRemekBackend.Services.FoodServices
             _conn = conn;
         }
 
-        public async Task<bool> CreateFoodAsync(CreateFoodDto cfood)
+        public async Task<bool> CreateFoodAsync(Guid restaurantPublicId, CreateFoodDto dto)
         {
+            var restaurant = await _conn.Restaurants
+                .FirstOrDefaultAsync(r => r.publicId == restaurantPublicId);
+
+            if (restaurant == null)
+                return false;
+
             var food = new Food
             {
                 publicId = Guid.NewGuid(),
-                Name = cfood.Name,
-                Description = cfood.Description,
-                Price = cfood.Price,
-                Category = cfood.Category,
-                RestaurantId = cfood.RestaurantId,
-  
-                Images = cfood.Images.Select(i => new FoodImage
+                Name = dto.Name,
+                Description = dto.Description,
+                Price = dto.Price,
+                Category = dto.Category,
+                RestaurantId = restaurant.Id,
+                Images = dto.Images.Select(i => new FoodImage
                 {
                     ImageUrl = i.ImageUrl
                 }).ToList()
@@ -55,6 +60,7 @@ namespace VizsgaRemekBackend.Services.FoodServices
                     Name = f.Name,
                     Price = f.Price,
                     Category = f.Category,
+                    Description = f.Description,
                     ImageUrl = f.Images.Select(i => i.ImageUrl ).ToList()
                 })
                 .ToListAsync();
@@ -98,28 +104,36 @@ namespace VizsgaRemekBackend.Services.FoodServices
 
         public async Task<bool> UpdateFoodAsync(Guid publicid, UpdateFoodDto ufood)
         {
-
             var food = await _conn.Foods
                 .Include(f => f.Images)
                 .FirstOrDefaultAsync(f => f.publicId == publicid);
 
-            if (food == null) return false;
+            if (food == null)
+                return false;
 
-            // Alap adatok frissítése
-            food.Name = ufood.Name;
-            food.Description = ufood.Description;
-            food.Price = (decimal)ufood.Price;
-            food.Category = ufood.Category;
-            food.UpdatedAt = DateTime.UtcNow;
+            if (ufood.Name != null)
+                food.Name = ufood.Name;
 
-    
-            _conn.FoodImages.RemoveRange(food.Images);
+            if (ufood.Description != null)
+                food.Description = ufood.Description;
 
-            food.Images = ufood.Images.Select(i => new FoodImage
+            if (ufood.Price.HasValue)
+                food.Price = ufood.Price.Value;
+
+            if (ufood.Category != null)
+                food.Category = ufood.Category;
+
+            if (ufood.Images != null)
             {
-                ImageUrl = i.ImageUrl
-            }).ToList();
+                _conn.FoodImages.RemoveRange(food.Images);
 
+                food.Images = ufood.Images.Select(i => new FoodImage
+                {
+                    ImageUrl = i.ImageUrl
+                }).ToList();
+            }
+
+            food.UpdatedAt = DateTime.UtcNow;
 
             return await _conn.SaveChangesAsync() > 0;
         }

@@ -39,15 +39,18 @@ namespace VizsgaRemekBackend.Controllers.Food
             return Ok(food);
         }
 
-   
-        [HttpPost]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Create([FromBody] CreateFoodDto dto)
-        {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var success = await _foodService.CreateFoodAsync(dto);
-            if (!success) return BadRequest(new { message = "Hiba történt a mentés során." });
+        [HttpPost("restaurants/{restaurantPublicId:guid}/foods")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Create(Guid restaurantPublicId, [FromBody] CreateFoodDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var success = await _foodService.CreateFoodAsync(restaurantPublicId, dto);
+
+            if (!success)
+                return NotFound(new { message = "Nincs ilyen étterem." });
 
             return StatusCode(201, new { message = "Étel sikeresen létrehozva!" });
         }

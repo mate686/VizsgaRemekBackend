@@ -10,7 +10,7 @@ namespace VizsgaRemekBackend.Services.FoodServices
         Task<List<AllFoodDto>> GetAllFoodAsync();
         Task<FoodBypubId?> GetFoodByIdAsync(Guid publicid);
         Task<UpdateFoodDto?> GetUpdateFoodAsync(Guid publicid);
-        Task<bool> CreateFoodAsync(CreateFoodDto cfood);
+        Task<bool> CreateFoodAsync(Guid restaurantPublicId, CreateFoodDto dto);
         Task<bool> UpdateFoodAsync(Guid publicid, UpdateFoodDto ufood);
         Task<bool> DeleteFoodAsync(Guid publicid);
     }

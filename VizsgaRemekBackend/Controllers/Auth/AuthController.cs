@@ -4,8 +4,10 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Text;
 using VizsgaRemekBackend.Dtos;
 using VizsgaRemekBackend.Dtos.AuthDtos;
 using VizsgaRemekBackend.Models;
@@ -90,12 +92,10 @@ namespace VizsgaRemekBackend.Controllers.Auth
             if (user == null) return Ok("Ha létezik ez az e-mail cím a rendszerben, elküldtük a visszaállítási linket.");
 
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-            var encodedToken = Uri.EscapeDataString(token);
+            var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
 
             var frontendUrl = _config["FrontendUrl"];
-
             var resetLink = $"{frontendUrl}/reset-password?email={user.Email}&token={encodedToken}";
-
 
             var emailBody = $@"
             <h2>Jelszó visszaállítása</h2>
@@ -106,7 +106,6 @@ namespace VizsgaRemekBackend.Controllers.Auth
             <br>
             <p>Üdvözlettel,<br>A VizsgaRemek Csapata</p>";
 
-  
             await _ems.SendEmailAsync(user.Email, "Jelszó visszaállítása - VizsgaRemek", emailBody);
 
             return Ok("Ha létezik ez az e-mail cím a rendszerben, elküldtük a visszaállítási linket.");
@@ -114,14 +113,15 @@ namespace VizsgaRemekBackend.Controllers.Auth
 
 
         [HttpPost("reset-password")]
-        [AllowAnonymous] 
+        [AllowAnonymous]
         public async Task<IActionResult> ResetPasswordAsync([FromBody] ResetPasswordDto dto)
         {
             var user = await _userManager.FindByEmailAsync(dto.Email);
             if (user == null) return BadRequest("Hiba történt a jelszó visszaállítása során.");
 
-  
-            var result = await _userManager.ResetPasswordAsync(user, dto.Token, dto.NewPassword);
+            var decodedToken = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(dto.Token));
+
+            var result = await _userManager.ResetPasswordAsync(user, decodedToken, dto.NewPassword);
 
             if (result.Succeeded)
             {

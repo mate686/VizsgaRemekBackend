@@ -164,7 +164,8 @@ namespace VizsgaRemekBackend
 
             using (var scope = app.Services.CreateScope())
             {
-                await UserSeeder.SeedAsync(scope.ServiceProvider);
+
+                await DbSeeder.SeedAsync(scope.ServiceProvider);
             }
 
             // Configure the HTTP request pipeline.
@@ -172,6 +173,11 @@ namespace VizsgaRemekBackend
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
+
+                using (var scope = app.Services.CreateScope())
+                {
+                    await UserSeeder.SeedAsync(scope.ServiceProvider);
+                }
             }
 
             app.UseHttpsRedirection();
@@ -184,10 +190,7 @@ namespace VizsgaRemekBackend
             app.MapControllers();
 
 
-            using (var scope = app.Services.CreateScope())
-            {
-                await DbSeeder.SeedAsync(scope.ServiceProvider);
-            }
+            
 
             app.Run();
         }

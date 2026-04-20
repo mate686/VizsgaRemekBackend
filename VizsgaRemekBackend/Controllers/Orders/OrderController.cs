@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using VizsgaRemekBackend.Controllers.Orders;
 using VizsgaRemekBackend.Dtos.OrderDtos;
 using VizsgaRemekBackend.Services.Orders;
 
@@ -23,7 +24,12 @@ namespace VizsgaRemekBackend.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllOrders()
         {
-            var orders = await _orderService.GetAllOrdersAsync();
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized("Nem található felhasználói azonosító a tokenben.");
+
+            var orders = await _orderService.GetOrdersForUserAsync(userId);
             return Ok(orders);
         }
 
@@ -39,32 +45,27 @@ namespace VizsgaRemekBackend.Controllers
             return Ok(order);
         }
 
+        [HttpGet("allAdmin")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetAllOrdersForAdmin()
+        {
+            var orders = await _orderService.GetAllOrdersAsync();
+            return Ok(orders);
+        }
+
         [HttpPost]
         public async Task<IActionResult> CreateOrder([FromBody] List<CartItemDto> items)
         {
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
             var result = await _orderService.CreateOrderAsync(GetUserId(), items);
             if (result != "Sikeres") return BadRequest(new { message = result });
 
             return Ok(new { message = "Rendelés sikeresen mentve!" });
         }
 
-        [HttpPut("items/{foodPublicId}")]
-        public async Task<IActionResult> UpdateQuantity(Guid foodPublicId, [FromQuery] Guid orderId, [FromQuery] int quantity)
-        {
-            var success = await _orderService.UpdateItemQuantityAsync(orderId, foodPublicId, quantity);
-            if (!success) return BadRequest(new { message = "Sikertelen módosítás." });
-
-            return Ok(new { message = "Mennyiség frissítve!" });
-        }
-
-        [HttpDelete("items/{foodPublicId}")]
-        public async Task<IActionResult> RemoveItem(Guid foodPublicId, [FromQuery] Guid orderId)
-        {
-            var success = await _orderService.RemoveItemFromOrderAsync(orderId, foodPublicId);
-            if (!success) return BadRequest(new { message = "Sikertelen törlés." });
-
-            return Ok(new { message = "Tétel eltávolítva!" });
-        }
 
         // ÚJ: Fizetés és pontbeváltás végpontja
         [HttpPost("{publicid}/checkout")]
@@ -79,13 +80,21 @@ namespace VizsgaRemekBackend.Controllers
         }
 
         [HttpPatch("{publicid}/status")]
-        [Authorize(Roles = "Admin")] // Ezt csak adminok állíthatják
-        public async Task<IActionResult> UpdateStatus(Guid publicid, [FromBody] string newStatus)
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UpdateStatus(Guid publicid, [FromBody] UpdateOrderStatusDto dto)
         {
-            var success = await _orderService.UpdateOrderStatusAsync(publicid, newStatus);
-            if (!success) return NotFound();
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-            return Ok(new { message = $"Rendelés státusza frissítve: {newStatus}" });
+            if (string.IsNullOrWhiteSpace(dto.Status))
+                return BadRequest(new { message = "A státusz megadása kötelező." });
+
+            var success = await _orderService.UpdateOrderStatusAsync(publicid, dto.Status);
+
+            if (!success)
+                return NotFound(new { message = "A rendelés nem található." });
+
+            return Ok(new { message = $"Rendelés státusza frissítve: {dto.Status}" });
         }
 
         [HttpDelete("{publicid}")]
@@ -96,6 +105,44 @@ namespace VizsgaRemekBackend.Controllers
             if (!success) return NotFound();
 
             return Ok(new { message = "Rendelés törölve." });
+        }
+
+
+
+        [HttpPut("items/{foodPublicId}")]
+        public async Task<IActionResult> UpdateQuantity(Guid foodPublicId, [FromQuery] Guid orderId, [FromQuery] int quantity)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized("Nem található felhasználói azonosító a tokenben.");
+
+            var isAdmin = User.IsInRole("Admin");
+
+            var success = await _orderService.UpdateItemQuantityAsync(orderId, foodPublicId, quantity, userId, isAdmin);
+
+            if (!success)
+                return BadRequest(new { message = "Sikertelen módosítás." });
+
+            return Ok(new { message = "Mennyiség frissítve!" });
+        }
+
+        [HttpDelete("items/{foodPublicId}")]
+        public async Task<IActionResult> RemoveItem(Guid foodPublicId, [FromQuery] Guid orderId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized("Nem található felhasználói azonosító a tokenben.");
+
+            var isAdmin = User.IsInRole("Admin");
+
+            var success = await _orderService.RemoveItemFromOrderAsync(orderId, foodPublicId, userId, isAdmin);
+
+            if (!success)
+                return BadRequest(new { message = "Sikertelen törlés." });
+
+            return Ok(new { message = "Tétel eltávolítva!" });
         }
     }
 }

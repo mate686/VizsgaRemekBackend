@@ -15,6 +15,14 @@ namespace VizsgaRemekBackend.Services.Orders
             _conn = conn;
         }
 
+        public async Task<List<Order>> GetOrdersForUserAsync(string userId) =>
+        await _conn.Orders
+        .Where(o => o.UserId == userId)
+        .Include(o => o.OrderItems)
+        .ThenInclude(oi => oi.Food)
+        .OrderByDescending(o => o.CreatedAt)
+        .ToListAsync();
+
         private async Task RecalculateTotalAsync(Order order)
         {
             var items = await _conn.OrderItems
@@ -27,11 +35,16 @@ namespace VizsgaRemekBackend.Services.Orders
             await _conn.SaveChangesAsync();
         }
 
-      
+
         public async Task<bool> UpdateOrderStatusAsync(Guid publicid, string newStatus)
         {
             var order = await _conn.Orders.FirstOrDefaultAsync(x => x.publicId == publicid);
             if (order == null) return false;
+
+            var allowedStatuses = new[] { "pending", "Paid", "Cancelled", "Completed" };
+
+            if (!allowedStatuses.Contains(newStatus))
+                return false;
 
             order.Status = newStatus;
             order.UpdatedAt = DateTime.UtcNow;
@@ -40,7 +53,7 @@ namespace VizsgaRemekBackend.Services.Orders
             return true;
         }
 
-       
+
         public async Task<bool> DeleteOrderAsync(Guid publicid)
         {
             var order = await _conn.Orders.FirstOrDefaultAsync(x => x.publicId == publicid);
@@ -51,8 +64,13 @@ namespace VizsgaRemekBackend.Services.Orders
             return true;
         }
 
-       
-        public async Task<List<Order>> GetAllOrdersAsync() => await _conn.Orders.ToListAsync();
+
+        public async Task<List<Order>> GetAllOrdersAsync() =>
+        await _conn.Orders
+        .Include(o => o.OrderItems)
+        .ThenInclude(oi => oi.Food)
+        .OrderByDescending(o => o.CreatedAt)
+        .ToListAsync();
 
         public async Task<Order?> GetOrderByIdAsync(Guid publicid) =>
             await _conn.Orders
@@ -63,7 +81,11 @@ namespace VizsgaRemekBackend.Services.Orders
         // 4. Rendelés létrehozása (CartItemDto alapján, Identity UserId-val)
         public async Task<string> CreateOrderAsync(string userId, List<CartItemDto> items)
         {
-            if (items == null || !items.Any()) return "A kosár üres.";
+            if (items == null || !items.Any())
+                return "A kosár üres.";
+
+            if (items.Any(i => i.Quantity <= 0))
+                return "Minden tétel mennyiségének nagyobbnak kell lennie 0-nál.";
 
             var order = await _conn.Orders
                 .Include(o => o.OrderItems)
@@ -78,19 +100,23 @@ namespace VizsgaRemekBackend.Services.Orders
                     TotalPrice = 0,
                     OrderItems = new List<OrderItem>()
                 };
+
                 _conn.Orders.Add(order);
-                await _conn.SaveChangesAsync(); 
+                await _conn.SaveChangesAsync();
             }
 
             foreach (var itemDto in items)
             {
                 var food = await _conn.Foods.FirstOrDefaultAsync(f => f.publicId == itemDto.FoodPublicId);
-                if (food == null) continue;
+                if (food == null)
+                    continue;
 
                 var existingItem = order.OrderItems.FirstOrDefault(oi => oi.FoodId == food.Id);
+
                 if (existingItem != null)
                 {
                     existingItem.Quantity += itemDto.Quantity;
+                    existingItem.UpdatedAt = DateTime.UtcNow;
                 }
                 else
                 {
@@ -105,27 +131,33 @@ namespace VizsgaRemekBackend.Services.Orders
             }
 
             await _conn.SaveChangesAsync();
-            await RecalculateTotalAsync(order); 
+            await RecalculateTotalAsync(order);
+
             return "Sikeres";
         }
 
-      
-        public async Task<bool> UpdateItemQuantityAsync(Guid orderPublicId, Guid foodPublicId, int newQuantity)
+
+        public async Task<bool> UpdateItemQuantityAsync(Guid orderPublicId, Guid foodPublicId, int newQuantity, string userId, bool isAdmin)
         {
             if (newQuantity <= 0)
             {
-                return await RemoveItemFromOrderAsync(orderPublicId, foodPublicId);
+                return await RemoveItemFromOrderAsync(orderPublicId, foodPublicId, userId, isAdmin);
             }
 
             var order = await _conn.Orders.FirstOrDefaultAsync(o => o.publicId == orderPublicId);
             var food = await _conn.Foods.FirstOrDefaultAsync(f => f.publicId == foodPublicId);
 
-            if (order == null || food == null || order.Status != "pending") return false;
+            if (order == null || food == null || order.Status != "pending")
+                return false;
+
+            if (!isAdmin && order.UserId != userId)
+                return false;
 
             var orderItem = await _conn.OrderItems
                 .FirstOrDefaultAsync(oi => oi.OrderId == order.Id && oi.FoodId == food.Id);
 
-            if (orderItem == null) return false;
+            if (orderItem == null)
+                return false;
 
             orderItem.Quantity = newQuantity;
             orderItem.UpdatedAt = DateTime.UtcNow;
@@ -135,18 +167,23 @@ namespace VizsgaRemekBackend.Services.Orders
             return true;
         }
 
-    
-        public async Task<bool> RemoveItemFromOrderAsync(Guid orderPublicId, Guid foodPublicId)
+
+        public async Task<bool> RemoveItemFromOrderAsync(Guid orderPublicId, Guid foodPublicId, string userId, bool isAdmin)
         {
             var order = await _conn.Orders.FirstOrDefaultAsync(o => o.publicId == orderPublicId);
             var food = await _conn.Foods.FirstOrDefaultAsync(f => f.publicId == foodPublicId);
 
-            if (order == null || food == null || order.Status != "pending") return false;
+            if (order == null || food == null || order.Status != "pending")
+                return false;
+
+            if (!isAdmin && order.UserId != userId)
+                return false;
 
             var orderItem = await _conn.OrderItems
                 .FirstOrDefaultAsync(oi => oi.OrderId == order.Id && oi.FoodId == food.Id);
 
-            if (orderItem == null) return false;
+            if (orderItem == null)
+                return false;
 
             _conn.OrderItems.Remove(orderItem);
             await _conn.SaveChangesAsync();

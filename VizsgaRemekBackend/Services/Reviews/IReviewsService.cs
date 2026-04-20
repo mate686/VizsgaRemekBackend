@@ -5,10 +5,10 @@ namespace VizsgaRemekBackend.Services.Reviews
 {
     public interface IReviewsService
     {
-        Task<List<OutReviewDto>> GetAllReviewsAsync(string userId);
+        Task<List<OutReviewDto>> GetReviewsByRestaurantAsync(Guid restaurantPubId);
         Task<string> CreateReviewAsync(CreateReviewDto dto, string userId);
-        Task<string> DeleteReviewAsync(Guid pubid);
-        Task<bool> UpdateReviewAsync(string userpubid, UpdateReviewDto dto);
-        Task<UpdateReviewDto> GetReviewAsync(Guid pubid);
+        Task<DeleteReviewResult> DeleteReviewAsync(Guid pubid, string userId, bool isAdmin);
+        Task<bool> UpdateReviewAsync(string userId, UpdateReviewDto dto);
+        Task<UpdateReviewDto?> GetReviewAsync(Guid pubid, string userId, bool isAdmin);
     }
 }

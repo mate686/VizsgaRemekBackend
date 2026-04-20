@@ -19,8 +19,11 @@ namespace VizsgaRemekBackend.Services.Orders
 
         Task<string> CheckoutOrderAsync(Guid orderPublicId, string userId, int pointsToUse);
 
-        Task<bool> UpdateItemQuantityAsync(Guid orderPublicId, Guid foodPublicId, int newQuantity);
 
-        Task<bool> RemoveItemFromOrderAsync(Guid orderPublicId, Guid foodPublicId);
+        Task<List<Order>> GetOrdersForUserAsync(string userId);
+
+        Task<bool> UpdateItemQuantityAsync(Guid orderPublicId, Guid foodPublicId, int newQuantity, string userId, bool isAdmin);
+
+        Task<bool> RemoveItemFromOrderAsync(Guid orderPublicId, Guid foodPublicId, string userId, bool isAdmin);
     }
 }

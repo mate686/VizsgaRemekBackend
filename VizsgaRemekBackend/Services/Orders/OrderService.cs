@@ -15,13 +15,44 @@ namespace VizsgaRemekBackend.Services.Orders
             _conn = conn;
         }
 
-        public async Task<List<Order>> GetOrdersForUserAsync(string userId) =>
-        await _conn.Orders
-        .Where(o => o.UserId == userId)
-        .Include(o => o.OrderItems)
-        .ThenInclude(oi => oi.Food)
-        .OrderByDescending(o => o.CreatedAt)
-        .ToListAsync();
+        private static OrderResponseDto MapOrder(Order o)
+        {
+            return new OrderResponseDto
+            {
+                PublicId = o.publicId,
+                UserId = o.UserId,
+                OrderDate = o.OrderDate,
+                Status = o.Status,
+                TotalPrice = o.TotalPrice,
+                CreatedAt = o.CreatedAt,
+                UpdatedAt = o.UpdatedAt,
+                OrderItems = o.OrderItems.Select(oi => new OrderItemResponseDto
+                {
+                    Id = oi.Id,
+                    FoodId = oi.FoodId,
+                    Quantity = oi.Quantity,
+                    RestaurantId = oi.RestaurantId,
+                    Food = oi.Food == null ? null : new FoodMiniDto
+                    {
+                        PublicId = oi.Food.publicId,
+                        Name = oi.Food.Name,
+                        Price = oi.Food.Price
+                    }
+                }).ToList()
+            };
+        }
+
+       
+
+        public async Task<OrderResponseDto?> GetOrderByIdAsync(Guid publicid)
+        {
+            var order = await _conn.Orders
+                .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.Food)
+                .FirstOrDefaultAsync(x => x.publicId == publicid);
+
+            return order == null ? null : MapOrder(order);
+        }
 
         private async Task RecalculateTotalAsync(Order order)
         {
@@ -65,18 +96,18 @@ namespace VizsgaRemekBackend.Services.Orders
         }
 
 
-        public async Task<List<Order>> GetAllOrdersAsync() =>
-        await _conn.Orders
-        .Include(o => o.OrderItems)
-        .ThenInclude(oi => oi.Food)
-        .OrderByDescending(o => o.CreatedAt)
-        .ToListAsync();
-
-        public async Task<Order?> GetOrderByIdAsync(Guid publicid) =>
-            await _conn.Orders
+        public async Task<List<OrderResponseDto>> GetAllOrdersAsync()
+        {
+            var orders = await _conn.Orders
                 .Include(o => o.OrderItems)
-                .ThenInclude(oi => oi.Food) 
-                .FirstOrDefaultAsync(x => x.publicId == publicid);
+                .ThenInclude(oi => oi.Food)
+                .OrderByDescending(o => o.CreatedAt)
+                .ToListAsync();
+
+            return orders.Select(MapOrder).ToList();
+        }
+
+       
 
         // 4. Rendelés létrehozása (CartItemDto alapján, Identity UserId-val)
         public async Task<string> CreateOrderAsync(string userId, List<CartItemDto> items)
@@ -225,6 +256,24 @@ namespace VizsgaRemekBackend.Services.Orders
             await _conn.SaveChangesAsync();
 
             return $"Sikeres fizetés! Levonva: {pointsToUse} pont. Új egyenleged: {user.Points} pont (Kaptál {earnedPoints} új pontot).";
+        }
+
+        public async Task<List<OrderResponseDto>> GetOrdersForUserAsync(string userId)
+        {
+            var orders = await _conn.Orders
+                .Where(o => o.UserId == userId)
+                .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.Food)
+                .OrderByDescending(o => o.CreatedAt)
+                .ToListAsync();
+
+            return orders.Select(MapOrder).ToList();
+        }
+
+        public async Task<int> GetUserPoints(string userId)
+        {
+
+            return await _conn.Users.Where(u => u.Id == userId).Select(u => u.Points).FirstOrDefaultAsync();
         }
     }
 }

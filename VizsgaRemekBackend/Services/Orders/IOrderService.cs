@@ -6,12 +6,13 @@ namespace VizsgaRemekBackend.Services.Orders
 {
     public interface IOrderService
     {
+        Task<List<OrderResponseDto>> GetOrdersForUserAsync(string userId);
+        Task<OrderResponseDto?> GetOrderByIdAsync(Guid publicid);
+        Task<List<OrderResponseDto>> GetAllOrdersAsync();
 
         Task<string> CreateOrderAsync(string userId, List<CartItemDto> items);
 
-        Task<Order?> GetOrderByIdAsync(Guid publicId);
-
-        Task<List<Order>> GetAllOrdersAsync();
+        Task<int> GetUserPoints(string userId);
 
         Task<bool> UpdateOrderStatusAsync(Guid publicId, string status);
 
@@ -20,7 +21,7 @@ namespace VizsgaRemekBackend.Services.Orders
         Task<string> CheckoutOrderAsync(Guid orderPublicId, string userId, int pointsToUse);
 
 
-        Task<List<Order>> GetOrdersForUserAsync(string userId);
+        
 
         Task<bool> UpdateItemQuantityAsync(Guid orderPublicId, Guid foodPublicId, int newQuantity, string userId, bool isAdmin);
 

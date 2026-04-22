@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using System.Threading.Tasks;
 using VizsgaRemekBackend.Controllers.Orders;
 using VizsgaRemekBackend.Dtos.OrderDtos;
 using VizsgaRemekBackend.Services.Orders;
@@ -20,6 +21,15 @@ namespace VizsgaRemekBackend.Controllers
         }
 
         private string GetUserId() => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+
+        [HttpGet("points")]
+        public async Task<IActionResult> GetPoints() {
+            var userId = GetUserId();
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized("Nem található felhasználói azonosító a tokenben.");
+            int points =await _orderService.GetUserPoints(userId);
+            return Ok( points );
+        }
 
         [HttpGet]
         public async Task<IActionResult> GetAllOrders()

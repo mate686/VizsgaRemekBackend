@@ -15,7 +15,7 @@ namespace VizsgaRemekBackend.Services.FoodServices
             _conn = conn;
         }
 
-        public async Task<bool> CreateFoodAsync(Guid restaurantPublicId, CreateFoodDto dto)
+        public async Task<bool> CreateFoodAsync(Guid restaurantPublicId, CreateFoodDto cfood)
         {
             var restaurant = await _conn.Restaurants
                 .FirstOrDefaultAsync(r => r.publicId == restaurantPublicId);
@@ -26,15 +26,23 @@ namespace VizsgaRemekBackend.Services.FoodServices
             var food = new Food
             {
                 publicId = Guid.NewGuid(),
-                Name = dto.Name,
-                Description = dto.Description,
-                Price = dto.Price,
-                Category = dto.Category,
-                RestaurantId = restaurant.Id,
-                Images = dto.Images.Select(i => new FoodImage
+                Name = cfood.Name,
+                Description = cfood.Description,
+                Price = cfood.Price,
+                Category = cfood.Category,
+                Restaurant = await _conn.Restaurants.FirstOrDefaultAsync(r => r.publicId == cfood.RestaurantPublicId),
+
+              
+                Images = cfood.Images.Select(i => new FoodImage
+
                 {
                     ImageUrl = i.ImageUrl
                 }).ToList()
+
+                /*Images = new FoodImage
+                {
+                    ImageUrl = cfood.Images
+                }*/
             };
 
             _conn.Foods.Add(food);

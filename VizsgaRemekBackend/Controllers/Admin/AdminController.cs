@@ -7,9 +7,7 @@ using VizsgaRemekBackend.Models;
 
 namespace VizsgaRemekBackend.Controllers.Admin
 {
-    /// <summary>
-    /// Admin-only végpontok a WPF dashboard számára.
-    /// </summary>
+    
     [Route("api/[controller]")]
     [ApiController]
     [Authorize(Roles = "Admin")]

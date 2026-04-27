@@ -51,7 +51,7 @@ namespace VizsgaRemekBackend.Services.Auth
 
                 return errorMessage;
             }
-            //return result.Succeeded;
+            
 
 
 
@@ -165,20 +165,5 @@ namespace VizsgaRemekBackend.Services.Auth
                 Phone = user.PhoneNumber
             }, null);
         }
-
-        //Logout token elmentése egy listaba amibe a kijeltkezetteket tároljuk, (Kijelentkezés és a jwt törlése reactban történik )
-        /*
-        private static HashSet<string> _revokedTokens = new();
-
-        public Task<string?> LogoutAsync(string token)
-        {
-            _revokedTokens.Add(token);
-            return "Sikeres kijelentkezés";
-        }
-
-        public bool IsTokenRevoked(string token)
-        {
-            return _revokedTokens.Contains(token);
-        }*/
     }
 }

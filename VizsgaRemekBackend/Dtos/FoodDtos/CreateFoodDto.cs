@@ -7,7 +7,7 @@ namespace VizsgaRemekBackend.Dtos.FoodDtos
     public class CreateFoodDto
     {
 
-        //public int RestaurantId { get; set; }
+        
         [Required]
         public string Name { get; set; } = null!;
         [Required]
@@ -23,9 +23,7 @@ namespace VizsgaRemekBackend.Dtos.FoodDtos
         [Required]
         public List<FoodImageDto> Images { get; set; } = new List<FoodImageDto>();
 
-        //public Restaurant Restaurant { get; set; } = null!;
-        //[Required]
-        //public ICollection<FoodImage> Images { get; set; } = new List<FoodImage>();
+        
   
         
 

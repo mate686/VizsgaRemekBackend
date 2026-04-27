@@ -3,7 +3,6 @@
     public class RegisterDto
     {
         public string Name { get; set; } = null!;
-        //public int Points { get; set; } = 0;
 
         public string Email { get; set; } = null!;
 

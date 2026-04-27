@@ -13,7 +13,7 @@ namespace VizsgaRemekBackend.Dtos.FoodDtos
 
         public List<string> ImageUrl { get; set; }
 
-        //public ICollection<FoodImage> Images { get; set; } = new List<FoodImage>();
+        
 
     }
 }

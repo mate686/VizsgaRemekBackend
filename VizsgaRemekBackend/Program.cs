@@ -24,10 +24,7 @@ namespace VizsgaRemekBackend
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
-
-            //builder.Services.AddDbContext<Models.AppDbContext>();
-
+            
             builder.Services.AddScoped<IFoodService, FoodService>();
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IOrderService, OrderService>();
@@ -37,7 +34,6 @@ namespace VizsgaRemekBackend
             builder.Services.AddScoped<IEmailService, EmailService>();
 
             builder.Services.AddControllers();
-            // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
 
             
@@ -53,7 +49,7 @@ namespace VizsgaRemekBackend
                 .AddDefaultTokenProviders();
 
 
-            //Identity konfiguráció még nincs beállítva
+            //Identity konfiguráció 
             builder.Services.Configure<IdentityOptions>(options =>
             {
                 /*// Password settings.
@@ -81,7 +77,7 @@ namespace VizsgaRemekBackend
 
             builder.Services.AddAuthentication(options =>
             {
-                // KRITIKUS: ha Identity cookie is jelen van, enélkül keveredhet a scheme
+                
 
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
 
@@ -116,7 +112,6 @@ namespace VizsgaRemekBackend
 
 
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-
                 {
 
                     Name = "Authorization",
@@ -165,7 +160,8 @@ namespace VizsgaRemekBackend
             using (var scope = app.Services.CreateScope())
             {
 
-                await DbSeeder.SeedAsync(scope.ServiceProvider);
+               
+                await UserSeeder.SeedAsync(scope.ServiceProvider);
             }
 
             // Configure the HTTP request pipeline.
@@ -174,10 +170,6 @@ namespace VizsgaRemekBackend
                 app.UseSwagger();
                 app.UseSwaggerUI();
 
-                using (var scope = app.Services.CreateScope())
-                {
-                    await UserSeeder.SeedAsync(scope.ServiceProvider);
-                }
             }
 
             app.UseHttpsRedirection();
@@ -189,8 +181,6 @@ namespace VizsgaRemekBackend
 
             app.MapControllers();
 
-
-            
 
             app.Run();
         }

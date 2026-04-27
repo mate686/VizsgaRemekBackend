@@ -52,15 +52,6 @@ namespace VizsgaRemekBackend.Controllers.Auth
                 return BadRequest(result);
             }
 
-            /*if (result)
-            {
-                return Created();
-            }
-            else
-            {
-                return BadRequest("Sikertelen regisztráció");
-            }*/
-
         }
 
         [HttpPost("login")]
@@ -156,13 +147,6 @@ namespace VizsgaRemekBackend.Controllers.Auth
         }
 
         //Kijelentkezés reactban történik a token törlése a localstorage-ból
-        /*
-        [HttpPost("logout")]
-        public async Task<IActionResult> Logout()
-        {
-            await _ats.LogoutAsync();
-            return Ok("Sikeres kijelentkezés");
-        }*/
 
 
     }

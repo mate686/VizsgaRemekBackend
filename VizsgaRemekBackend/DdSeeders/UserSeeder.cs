@@ -8,39 +8,6 @@ namespace VizsgaRemekBackend.DdSeeders
 {
     public class UserSeeder
     {
-        /*public static async Task SeedAsync(IServiceProvider services)
-        {
-
-            var userManager = services.GetRequiredService<UserManager<User>>();
-            var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
-
-
-            if (!await roleManager.RoleExistsAsync("ADMIN"))
-            {
-                await roleManager.CreateAsync(new IdentityRole("ADMIN"));
-            }
-
-            if (!await roleManager.RoleExistsAsync("USER"))
-            {
-                await roleManager.CreateAsync(new IdentityRole("USER"));
-            }
-
-
-            var adminEmail = "admin@example.com";
-            if (await userManager.FindByEmailAsync(adminEmail) == null)
-            {
-                var admin = new User
-                {
-                    UserName = adminEmail,
-                    Email = adminEmail,
-                    EmailConfirmed = true,
-                    Name = "Admin",
-                    Points = 0
-                };
-                await userManager.CreateAsync(admin, "Admin123!");
-                await userManager.AddToRoleAsync(admin, "ADMIN");
-            }
-        }*/
 
         public static async Task SeedAsync(IServiceProvider serviceProvider)
         {
@@ -50,8 +17,9 @@ namespace VizsgaRemekBackend.DdSeeders
             var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
             
-            //await context.Database.MigrateAsync();
-            
+            await context.Database.MigrateAsync();
+
+           
 
             await SeedRolesAsync(roleManager);
             await SeedUsersAsync(userManager);
@@ -64,6 +32,8 @@ namespace VizsgaRemekBackend.DdSeeders
             await SeedReviewsAsync(context, userManager);
             await SeedFavoritesAsync(context, userManager);
         }
+
+
 
         private static async Task SeedRolesAsync(RoleManager<IdentityRole> roleManager)
         {
@@ -158,7 +128,7 @@ namespace VizsgaRemekBackend.DdSeeders
                     Phone              = "+3614567890",
                     OpeningHours       = "10:00–22:00",
                     Category           = "Pizza",
-                    RestaurantImageUrl = "https://example.com/images/pizzapalace.jpg",
+                    RestaurantImageUrl = "https://www.millsboropizzapalace.net/images/banner-3.jpg",
                 },
                 new Restaurant
                 {
@@ -167,7 +137,7 @@ namespace VizsgaRemekBackend.DdSeeders
                     Phone              = "+3619876543",
                     OpeningHours       = "11:00–23:00",
                     Category           = "Burger",
-                    RestaurantImageUrl = "https://example.com/images/burgerbistro.jpg",
+                    RestaurantImageUrl = "https://static.wixstatic.com/media/dfdfac_916e876aadf24363a313cdd8644bc4f9~mv2.jpg",
                 },
                 new Restaurant
                 {
@@ -176,7 +146,7 @@ namespace VizsgaRemekBackend.DdSeeders
                     Phone              = "+3611122334",
                     OpeningHours       = "12:00–21:00",
                     Category           = "Sushi",
-                    RestaurantImageUrl = "https://example.com/images/sushisakura.jpg",
+                    RestaurantImageUrl = "https://imageproxy.wolt.com/assets/68db87a3f18cfc617a59369c",
                 },
                 new Restaurant
                 {
@@ -185,7 +155,7 @@ namespace VizsgaRemekBackend.DdSeeders
                     Phone              = "+3615544332",
                     OpeningHours       = "09:00–21:00",
                     Category           = "Magyar",
-                    RestaurantImageUrl = "https://example.com/images/magyarcsarda.jpg",
+                    RestaurantImageUrl = "https://etterem.hu/img/x/p9782n/1393246118-1490.jpg",
                 },
             };
 
@@ -236,11 +206,33 @@ namespace VizsgaRemekBackend.DdSeeders
 
             var foods = await context.Foods.ToListAsync();
 
-            var images = foods.Select(f => new FoodImage
+            var imageLinks = new Dictionary<string, string>
+            {
+                { "Margherita Pizza", "https://safrescobaldistatic.blob.core.windows.net/media/2022/11/PIZZA-MARGHERITA.jpg" },
+                { "Pepperoni Pizza", "https://assets-us-01.kc-usercontent.com/4353bced-f940-00d0-8c6e-13a0a4a7f5c2/2ac60829-5178-4a6e-80cf-6ca43d862cee/Quick-and-Easy-Pepperoni-Pizza-700x700.jpeg?w=1280&auto=format" },
+                { "Quattro Stagioni", "https://acrobatica.ro/wp-content/uploads/2019/11/pizza-quattro-stagioni-cluj.png" },
+
+                { "Classic Burger", "https://blog-content.omahasteaks.com/wp-content/uploads/2022/06/blogwp_classic-american-burger-scaled-1.jpg" },
+                { "BBQ Bacon Burger", "https://blog-content.omahasteaks.com/wp-content/uploads/2022/06/blogwp_bbq-bacon-brisket-burger-with-candied-bacon-scaled-1.jpg" },
+                { "Veggie Burger", "https://www.realsimple.com/thmb/z3cQCYXTyDQS9ddsqqlTVE8fnpc=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/real-simple-mushroom-black-bean-burgers-recipe-0c365277d4294e6db2daa3353d6ff605.jpg" },
+
+                { "Salmon Nigiri", "https://cdn.tasteatlas.com/images/dishes/ef30d84ca9f04834917378c56630c6da.jpg" },
+                { "California Roll", "https://upload.wikimedia.org/wikipedia/commons/9/9f/California_Sushi_%2826571101885%29.jpg" },
+                { "Dragon Roll", "https://www.justonecookbook.com/wp-content/uploads/2020/06/Dragon-Roll-0286-I.jpg" },
+
+                { "Gulyásleves", "https://production.streetkitchen-cdn.com/klasszikus-gulyasleves-2-scaled-gn_-N2.webp" },
+                { "Csirkepaprikás", "https://image-api.nosalty.hu/nosalty/images/recipes/fT/EM/csirkepaprikas-javabol.jpeg?w=1200&h=920&s=4960bf27094d63b3d015b54b8e909851" },
+                { "Lángos", "https://production.streetkitchen-cdn.com/klasszik-langos-scaled-yRvGSK.webp" }
+            };
+
+            var images = foods
+            .Where(f => imageLinks.ContainsKey(f.Name))
+            .Select(f => new FoodImage
             {
                 FoodId = f.Id,
-                ImageUrl = $"https://example.com/images/food/{f.Id}_main.jpg",
-            }).ToList();
+                ImageUrl = imageLinks[f.Name]
+            })
+            .ToList();
 
             await context.FoodImages.AddRangeAsync(images);
             await context.SaveChangesAsync();

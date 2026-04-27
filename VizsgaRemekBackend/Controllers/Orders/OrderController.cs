@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using VizsgaRemekBackend.Controllers.Orders;
 using VizsgaRemekBackend.Dtos.OrderDtos;
 using VizsgaRemekBackend.Services.Orders;
 
@@ -10,7 +9,7 @@ namespace VizsgaRemekBackend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize] // Minden rendeléshez be kell lenni jelentkezve
+    [Authorize] 
     public class OrdersController : ControllerBase
     {
         private readonly IOrderService _orderService;
@@ -49,7 +48,6 @@ namespace VizsgaRemekBackend.Controllers
             var order = await _orderService.GetOrderByIdAsync(publicid);
             if (order == null) return NotFound(new { message = "Rendelés nem található." });
 
-            // Biztonság: csak a sajátját láthatja, kivéve ha admin
             if (order.UserId != GetUserId() && !User.IsInRole("Admin")) return Forbid();
 
             return Ok(order);
@@ -77,7 +75,7 @@ namespace VizsgaRemekBackend.Controllers
         }
 
 
-        // ÚJ: Fizetés és pontbeváltás végpontja
+        //Fizetés és pontbeváltás végpontja
         [HttpPost("{publicid}/checkout")]
         public async Task<IActionResult> Checkout(Guid publicid, [FromQuery] int pointsToUse = 0)
         {

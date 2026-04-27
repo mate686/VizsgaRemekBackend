@@ -100,23 +100,6 @@ namespace VizsgaRemekBackend.Services.Reviews
             return review;
         }
 
-        /*public async Task<string> UpdateReviewAsync(string userpubid, UpdateReviewDto dto)
-        {
-            
-                Review? r = await _conn.Reviews.FirstOrDefaultAsync(x => x.PublicId.ToString() == userpubid && x.UserId == userpubid);
-                if (r == null) {
-                    return "Nincs ilyen értékelés";
-                }
-                r.Rating = dto.Rating;
-                r.Comment = dto.Comment;
-                r.UpdatedAt = DateTime.Now;
-
-
-                await _conn.SaveChangesAsync();
-
-                return "Sikeres értékelés frissítés";
-            
-        }*/
 
         public async Task<bool> UpdateReviewAsync(string userId, UpdateReviewDto dto)
         {

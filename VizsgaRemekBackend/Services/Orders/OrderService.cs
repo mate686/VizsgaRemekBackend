@@ -109,7 +109,7 @@ namespace VizsgaRemekBackend.Services.Orders
 
        
 
-        // 4. Rendelés létrehozása (CartItemDto alapján, Identity UserId-val)
+        
         public async Task<string> CreateOrderAsync(string userId, List<CartItemDto> items)
         {
             if (items == null || !items.Any())

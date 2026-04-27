@@ -39,10 +39,6 @@ namespace VizsgaRemekBackend.Services.FoodServices
                     ImageUrl = i.ImageUrl
                 }).ToList()
 
-                /*Images = new FoodImage
-                {
-                    ImageUrl = cfood.Images
-                }*/
             };
 
             _conn.Foods.Add(food);

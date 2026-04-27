@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace VizsgaRemekBackend.Controllers.Orders
+namespace VizsgaRemekBackend.Dtos.OrderDtos
 {
     public class UpdateOrderStatusDto
     {

@@ -30,15 +30,12 @@ namespace VizsgaRemekBackend.Services.FoodServices
                 Description = cfood.Description,
                 Price = cfood.Price,
                 Category = cfood.Category,
-                Restaurant = await _conn.Restaurants.FirstOrDefaultAsync(r => r.publicId == cfood.RestaurantPublicId),
+                Restaurant = restaurant,
 
-              
-                Images = cfood.Images.Select(i => new FoodImage
-
+                Images = cfood.Images?.Select(i => new FoodImage
                 {
                     ImageUrl = i.ImageUrl
-                }).ToList()
-
+                }).ToList() ?? new List<FoodImage>()
             };
 
             _conn.Foods.Add(food);
